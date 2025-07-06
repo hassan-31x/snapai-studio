@@ -388,7 +388,7 @@ const Dashboard = () => {
                           <CardContent className="pt-0">
                             <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
                               <p className="text-sm text-gray-700 leading-relaxed" style={{fontFamily:'Inter,Geist,sans-serif'}}>
-                                "{copy.content}"
+                                &quot;{copy.content}&quot;
                               </p>
                             </div>
                           </CardContent>
