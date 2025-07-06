@@ -15,9 +15,10 @@ const BackButton = ({
   return (
     <Button
       variant='link'
-      className='font-normal w-full'
+      className='font-normal w-full text-gray-600 hover:text-gray-900'
       size='sm'
       asChild
+      style={{fontFamily:'Inter,Geist,sans-serif'}}
     >
       <Link href={href}>
         {label}

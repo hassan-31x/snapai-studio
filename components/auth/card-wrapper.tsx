@@ -22,19 +22,20 @@ const CardWrapper = ({
 }: Props) => {
 
   return (
-    <Card className='w-[400px] shadow-md'>
-      <CardHeader>
+    <Card className='w-full bg-white border border-gray-100/60 shadow-lg rounded-2xl' 
+      style={{boxShadow:'0 8px 32px 0 rgba(60,60,120,0.08)'}}>
+      <CardHeader className="pb-6">
         <AuthHeader label={headerLabel} />
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-8">
         {children}
       </CardContent>
       {showSocial && (
-        <CardFooter>
+        <CardFooter className="px-8 pb-6">
           <AuthSocial />
         </CardFooter>
       )}
-      <CardFooter>
+      <CardFooter className="px-8 pb-8">
         <BackButton label={backButtonLabel} href={backButtonhref} />
       </CardFooter>
     </Card>

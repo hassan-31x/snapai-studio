@@ -43,26 +43,27 @@ const RegisterForm = (props: Props) => {
 
   return (
     <CardWrapper
-      headerLabel='Create an account'
+      headerLabel='Create your account to get started'
       backButtonLabel="Already have an account?"
       backButtonhref='/auth/login'
       showSocial
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-          <div className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6' style={{fontFamily:'Inter,Geist,sans-serif'}}>
+          <div className="space-y-5">
             <FormField
               control={form.control}
               name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Name</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       disabled={isPending}
                       type='text'
                       placeholder='John Doe'
+                      className="border-gray-200 focus-visible:ring-indigo-200 focus-visible:border-indigo-200 rounded-lg"
                     />
                   </FormControl>
                   <FormMessage />
@@ -75,13 +76,14 @@ const RegisterForm = (props: Props) => {
               name='email'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       disabled={isPending}
                       type='email'
                       placeholder='johndoe@gmail.com'
+                      className="border-gray-200 focus-visible:ring-indigo-200 focus-visible:border-indigo-200 rounded-lg"
                     />
                   </FormControl>
                   <FormMessage />
@@ -94,13 +96,14 @@ const RegisterForm = (props: Props) => {
               name='password'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       disabled={isPending}
                       type='password'
                       placeholder='********'
+                      className="border-gray-200 focus-visible:ring-indigo-200 focus-visible:border-indigo-200 rounded-lg"
                     />
                   </FormControl>
                   <FormMessage />
@@ -114,9 +117,10 @@ const RegisterForm = (props: Props) => {
           <Button
             disabled={isPending}
             type='submit'
-            className='w-full'
+            className='w-full bg-gray-900 text-white hover:bg-gray-700 rounded-lg py-3 font-medium transition-all'
+            style={{fontFamily:'Geist,Inter,sans-serif'}}
           >
-            Register
+            Create Account
           </Button>
         </form>
       </Form>

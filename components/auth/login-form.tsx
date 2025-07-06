@@ -74,19 +74,18 @@ const LoginForm = (props: Props) => {
   };
 
   return (
-    <CardWrapper headerLabel="Welcome Back!" backButtonLabel="Don't have an account?" backButtonhref="/auth/register" showSocial>
+    <CardWrapper headerLabel="Sign in to your account to continue" backButtonLabel="Don't have an account?" backButtonhref="/auth/register" showSocial>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" style={{fontFamily:'Inter,Geist,sans-serif'}}>
+          <div className="space-y-5">
             {showTwoFactor && (
               <FormField
                 control={form.control}
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Two Factor Code</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700">Two Factor Code</FormLabel>
                     <FormControl>
-                      {/* <Input {...field} disabled={isPending} type="text" placeholder="123456" /> */}
                       <InputOTP maxLength={6} value={field.value} onChange={field.onChange} disabled={isPending}>
                         <InputOTPGroup>
                           <InputOTPSlot index={0} />
@@ -113,9 +112,15 @@ const LoginForm = (props: Props) => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled={isPending} type="email" placeholder="johndoe@gmail.com" />
+                        <Input 
+                          {...field} 
+                          disabled={isPending} 
+                          type="email" 
+                          placeholder="johndoe@gmail.com" 
+                          className="border-gray-200 focus-visible:ring-indigo-200 focus-visible:border-indigo-200 rounded-lg"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -126,11 +131,17 @@ const LoginForm = (props: Props) => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
                       <FormControl>
-                        <Input {...field} disabled={isPending} type="password" placeholder="********" />
+                        <Input 
+                          {...field} 
+                          disabled={isPending} 
+                          type="password" 
+                          placeholder="********" 
+                          className="border-gray-200 focus-visible:ring-indigo-200 focus-visible:border-indigo-200 rounded-lg"
+                        />
                       </FormControl>
-                      <Button size="sm" variant="link" asChild className="px-0 font-normal">
+                      <Button size="sm" variant="link" asChild className="px-0 font-normal text-indigo-600 hover:text-indigo-700">
                         <Link href="/auth/reset-password">Forgot password?</Link>
                       </Button>
                       <FormMessage />
@@ -142,8 +153,13 @@ const LoginForm = (props: Props) => {
           </div>
           <FormError message={error || urlError} />
           <FormSuccess message={success} />
-          <Button disabled={isPending} type="submit" className="w-full">
-            {showTwoFactor ? "Confirm" : "Login"}
+          <Button 
+            disabled={isPending} 
+            type="submit" 
+            className="w-full bg-gray-900 text-white hover:bg-gray-700 rounded-lg py-3 font-medium transition-all"
+            style={{fontFamily:'Geist,Inter,sans-serif'}}
+          >
+            {showTwoFactor ? "Confirm" : "Sign In"}
           </Button>
         </form>
       </Form>
