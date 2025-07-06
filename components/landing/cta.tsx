@@ -28,7 +28,7 @@ const CTA = ({ waitlistCount, setWaitlistCount }: CTAProps) => {
       toast.dismiss();
       if (data.success) {
         setIsSubmitted(true);
-        setWaitlistCount(data.count + 20);
+        setWaitlistCount(data.count);
         toast.success('Added to waitlist!');
       } else if (res.status === 409) {
         toast.error('Email already on waitlist.');

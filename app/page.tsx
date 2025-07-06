@@ -26,7 +26,7 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         console.log(data)
-        if (data.count) setWaitlistCount(data.count + 20);
+        if (data.count) setWaitlistCount(data.count);
         setLoading(false);
       });
   }, []);

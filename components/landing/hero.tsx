@@ -28,7 +28,7 @@ const Hero = ({ waitlistCount, setWaitlistCount }: HeroProps) => {
       toast.dismiss();
       if (data.success) {
         setIsSubmitted(true);
-        setWaitlistCount(data.count + 20);
+        setWaitlistCount(data.count);
         toast.success('Added to waitlist!');
       } else if (res.status === 409) {
         toast.error('Email already on waitlist.');
@@ -99,7 +99,7 @@ const Hero = ({ waitlistCount, setWaitlistCount }: HeroProps) => {
               </button>
             </form>
           ) : (
-            <div className="glass rounded-2xl p-6 max-w-sm mx-auto mb-8 shadow-lg border border-gray-100/60">
+            <div className="glass rounded-2xl p-6 max-w-sm mx-auto mb-8 shadow-lg border border-gray-100/60 bg-white">
               <div className="text-green-600 text-3xl mb-2">✓</div>
               <h3 className="text-base font-semibold mb-1">You&apos;re on the list!</h3>
               <p className="text-gray-500 text-sm">We&apos;ll notify you when Snap AI launches.</p>
