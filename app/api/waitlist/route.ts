@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     });
     const count = await db.waitlist.count();
 
-    return new Response(JSON.stringify({ success: true, message: 'Added to waitlist!', count }), {
+    return new Response(JSON.stringify({ success: true, message: 'Added to waitlist!', count: count+20 }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

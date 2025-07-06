@@ -1,6 +1,7 @@
 export const publicRoutes = [
   "/",
   "/auth/verify-email",
+  "/submissions",
 ]
 
 export const authRoutes = [
