@@ -101,8 +101,8 @@ const Hero = ({ waitlistCount, setWaitlistCount }: HeroProps) => {
           ) : (
             <div className="glass rounded-2xl p-6 max-w-sm mx-auto mb-8 shadow-lg border border-gray-100/60">
               <div className="text-green-600 text-3xl mb-2">✓</div>
-              <h3 className="text-base font-semibold mb-1">You're on the list!</h3>
-              <p className="text-gray-500 text-sm">We'll notify you when Snap AI launches.</p>
+              <h3 className="text-base font-semibold mb-1">You&apos;re on the list!</h3>
+              <p className="text-gray-500 text-sm">We&apos;ll notify you when Snap AI launches.</p>
             </div>
           )}
           <p className="text-xs text-gray-400 font-normal mb-8">No spam. Early access only.</p>

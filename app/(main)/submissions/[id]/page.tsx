@@ -8,11 +8,11 @@ import MultipleDownload from "../_components/multiple-download";
 import { imageTypes } from "@/lib/image-types";
 
 
-export default async function SubmissionPage({ params }: { params: { id: string } }) {
-  const submission = await getSubmissionById(params.id);
+export default async function SubmissionPage({ params }: any) {
+  const id = await params.id;
+  const submission = await getSubmissionById(id);
 
   if (!submission) return notFound();
-
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">

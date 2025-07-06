@@ -81,7 +81,7 @@ const CTA = ({ waitlistCount, setWaitlistCount }: CTAProps) => {
             <div className="glass rounded-2xl p-8 max-w-md mx-auto mb-6 shadow-lg border border-gray-100/60">
               <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
               <h4 className="text-lg font-semibold mb-2 text-gray-900" style={{fontFamily:'Geist,Inter,sans-serif'}}>Welcome to the waitlist!</h4>
-              <p className="text-gray-500 text-sm" style={{fontFamily:'Inter,Geist,sans-serif'}}>We'll notify you as soon as Snap AI is ready for you.</p>
+              <p className="text-gray-500 text-sm" style={{fontFamily:'Inter,Geist,sans-serif'}}>We&apos;ll notify you as soon as Snap AI is ready for you.</p>
             </div>
           )}
           
