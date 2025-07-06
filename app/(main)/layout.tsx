@@ -10,19 +10,21 @@ type Props = {
 const MainLayout = ({ children }: Props) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="flex h-screen bg-white" style={{fontFamily:'Inter,Geist,sans-serif'}}>
         <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center h-16 px-4 border-b bg-white/50 backdrop-blur-sm">
-            <SidebarTrigger />
-            <div className="ml-4 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">AI Creatives</span> / Dashboard
+          <div className="flex items-center h-16 px-6 border-b border-gray-100 bg-white">
+            <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
+            <div className="ml-4 text-sm text-gray-500">
+              <span className="font-medium text-gray-900" style={{fontFamily:'Geist,Inter,sans-serif'}}>AI Creatives</span> 
+              <span className="mx-2">/</span> 
+              <span>Dashboard</span>
             </div>
             <div className="ml-auto flex items-center space-x-2">
               {/* Add user profile or other header elements here */}
             </div>
           </div>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto bg-white">
             {children}
           </div>
         </main>

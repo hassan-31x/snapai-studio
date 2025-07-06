@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { AIAssistantModal } from "@/components/ai-assistant-modal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const initialForm = {
   productName: "",
@@ -291,17 +292,33 @@ const SubmitProduct = () => {
                         Fine-tune the creative direction for your brand and product visuals
                       </CardDescription>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowAIModal(true)}
-                      className="gap-2 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 hover:from-purple-100 hover:to-blue-100"
-                      disabled={!form.productName || !form.productCategory}
-                    >
-                      <Wand2 className="h-4 w-4 text-purple-600" />
-                      Write with AI
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (!form.productName || !form.productCategory) return;
+                              setShowAIModal(true);
+                            }}
+                            aria-disabled={!form.productName || !form.productCategory}
+                            className={`gap-2 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 hover:from-purple-100 hover:to-blue-100 ${
+                              (!form.productName || !form.productCategory) ? 'opacity-60 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Wand2 className="h-4 w-4 text-purple-600" />
+                            Write with AI
+                          </Button>
+                        </TooltipTrigger>
+                        {(!form.productName || !form.productCategory) && (
+                          <TooltipContent side="top" align="center" sideOffset={10}>
+                            <p>Add product name and category first</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </CardHeader>
                 <CardContent>
