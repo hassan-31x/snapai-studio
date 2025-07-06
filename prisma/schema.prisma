@@ -18,6 +18,14 @@ enum UserRole {
   ADMIN
 }
 
+model Waitlist {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  email String @unique
+  createdAt DateTime @default(now())
+
+  @@map("waitlist")
+}
+
 model User {
   id                    String                 @id @default(auto()) @map("_id") @db.ObjectId
   name                  String?
