@@ -7,10 +7,9 @@ import { CheckCircle, ArrowRight } from 'lucide-react';
 
 interface CTAProps {
   waitlistCount: number;
-  setWaitlistCount: (count: number) => void;
 }
 
-const CTA = ({ waitlistCount, setWaitlistCount }: CTAProps) => {
+const CTA = ({ waitlistCount }: CTAProps) => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -28,7 +27,6 @@ const CTA = ({ waitlistCount, setWaitlistCount }: CTAProps) => {
       toast.dismiss();
       if (data.success) {
         setIsSubmitted(true);
-        setWaitlistCount(data.count);
         toast.success('Added to waitlist!');
       } else if (res.status === 409) {
         toast.error('Email already on waitlist.');

@@ -1,48 +1,33 @@
-'use client';
-
-import { Github, Mail, Twitter, TwitterIcon, User, X, Sparkles, Zap, Target, Clock, ArrowRight, Play, CheckCircle } from "lucide-react";
+import { Github, Twitter, TwitterIcon } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from 'react';
-import { toast, Toaster } from 'sonner';
-import { motion, AnimatePresence } from 'motion/react';
+import { Toaster } from 'sonner';
 import Image from "next/image";
 
 // Import components
-import Hero from '../components/landing/hero';
-import Features from '../components/landing/features';
-import HowItWorks from '../components/landing/how-it-works';
-import BeforeAfter from '../components/landing/before-after';
-import Gallery from '../components/landing/gallery';
-import Testimonials from '../components/landing/testimonials';
-import CTA from '../components/landing/cta';
-import Navigation from '../components/landing/navigation';
+import Hero from '@/components/landing/hero';
+import Features from '@/components/landing/features';
+import HowItWorks from '@/components/landing/how-it-works';
+import BeforeAfter from '@/components/landing/before-after';
+import Gallery from '@/components/landing/gallery';
+import Testimonials from '@/components/landing/testimonials';
+import CTA from '@/components/landing/cta';
+import Navigation from '@/components/landing/navigation';
+import { db } from "@/lib/db";
 
-export default function Home() {
-  const [waitlistCount, setWaitlistCount] = useState<number>(20);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/waitlist')
-      .then(res => res.json())
-      .then(data => {
-        console.log(data)
-        if (data.count) setWaitlistCount(data.count);
-        setLoading(false);
-      });
-  }, []);
-
+export default async function Landing() {
+  const waitlistCount = 20 + ((await db.waitlist.count()) || 0)
   return (
     <div className="min-h-screen font-[Inter,Geist,sans-serif] bg-white relative">
       <Toaster position="top-center" richColors theme="light" />
 
       <Navigation />
-      <Hero waitlistCount={waitlistCount} setWaitlistCount={setWaitlistCount} />
+      <Hero waitlistCount={waitlistCount} />
       <Features />
       <HowItWorks />
       <BeforeAfter />
       <Gallery />
       <Testimonials />
-      <CTA waitlistCount={waitlistCount} setWaitlistCount={setWaitlistCount} />
+      <CTA waitlistCount={waitlistCount} />
 
       {/* Footer */}
       <footer className="py-12 px-6 bg-gray-50/30 border-t border-gray-100">

@@ -7,10 +7,9 @@ import Image from "next/image";
 
 interface HeroProps {
   waitlistCount: number;
-  setWaitlistCount: (count: number) => void;
 }
 
-const Hero = ({ waitlistCount, setWaitlistCount }: HeroProps) => {
+const Hero = ({ waitlistCount }: HeroProps) => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -28,7 +27,6 @@ const Hero = ({ waitlistCount, setWaitlistCount }: HeroProps) => {
       toast.dismiss();
       if (data.success) {
         setIsSubmitted(true);
-        setWaitlistCount(data.count);
         toast.success('Added to waitlist!');
       } else if (res.status === 409) {
         toast.error('Email already on waitlist.');
