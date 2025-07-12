@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Geist,  } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
+import Clarity from '@microsoft/clarity';
 
 import { auth } from "@/auth";
 
@@ -72,6 +73,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth()
+
+  const projectId = "sdn4w6tods"
+  Clarity.init(projectId);
 
   return (
     <SessionProvider session={session}>
