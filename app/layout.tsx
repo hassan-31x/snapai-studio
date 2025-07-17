@@ -8,6 +8,7 @@ import { auth } from "@/auth";
 
 import "./globals.css";
 import Script from "next/script";
+import { PostHogProvider } from "@/components/posthog-provider";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -78,16 +79,20 @@ export default async function RootLayout({
   const projectId = "sdn4w6tods"
   Clarity.init(projectId);
 
+  
+
   return (
     <SessionProvider session={session}>
       <html lang="en">
         <body
         // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          {children}
-          <Toaster />
+          <PostHogProvider>
+            {children}
+            <Toaster />
+          </PostHogProvider>
         </body>
-        <Script
+        {process.env.NODE_ENV === "production" && <Script
           id="microsoft-clarity-init"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
@@ -99,7 +104,7 @@ export default async function RootLayout({
             })(window, document, "clarity", "script", "sdn4w6tods");
             `,
           }}
-        />
+        />}
       </html>
     </SessionProvider>
   );
