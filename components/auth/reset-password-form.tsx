@@ -41,26 +41,25 @@ const ResetPasswordForm = (props: Props) => {
 
   return (
     <CardWrapper
-      headerLabel="Enter your email address and we'll send you a reset link"
+      headerLabel='Forgot your password?'
       backButtonLabel="Back to login"
       backButtonhref='/auth/login'
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6' style={{fontFamily:'Inter,Geist,sans-serif'}}>
-          <div className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+          <div className="space-y-4">
             <FormField
               control={form.control}
               name='email'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       disabled={isPending}
                       type='email'
                       placeholder='johndoe@gmail.com'
-                      className="border-gray-200 focus-visible:ring-indigo-200 focus-visible:border-indigo-200 rounded-lg"
                     />
                   </FormControl>
                   <FormMessage />
@@ -74,10 +73,9 @@ const ResetPasswordForm = (props: Props) => {
           <Button
             disabled={isPending}
             type='submit'
-            className='w-full bg-gray-900 text-white hover:bg-gray-700 rounded-lg py-3 font-medium transition-all'
-            style={{fontFamily:'Geist,Inter,sans-serif'}}
+            className='w-full'
           >
-            Send Reset Email
+            Send Email
           </Button>
         </form>
       </Form>
