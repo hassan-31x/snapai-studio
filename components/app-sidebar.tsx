@@ -53,7 +53,7 @@ export function AppSidebar() {
     {
       label: "Image",
       icon: ImageIcon,
-      href: "/submit",
+      href: "/generate",
     },
     {
       label: "Video",

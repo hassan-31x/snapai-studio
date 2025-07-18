@@ -261,7 +261,7 @@ const Dashboard = async () => {
                   <Grid3X3 className="w-4 h-4 mr-2" />
                   Filter
                 </Button>
-                <Link href="/submit">
+                <Link href="/generate">
                   <Button 
                     size="sm" 
                     className="rounded-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg"
@@ -395,7 +395,7 @@ const Dashboard = async () => {
                 </div>
                 <h3 className="text-lg font-medium text-slate-900 mb-2">No creations yet</h3>
                 <p className="text-slate-500 mb-6">Start creating your first AI-powered marketing creative</p>
-                <Link href="/submit">
+                <Link href="/generate">
                   <Button className="bg-violet-600 hover:bg-violet-700">
                     Create Your First Creative
                   </Button>
