@@ -193,19 +193,24 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     isActive={pathname === route.href}
                     className={cn(
-                      "w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      "w-full rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200",
                       "hover:bg-white/60 hover:shadow-sm",
                       pathname === route.href 
-                        ? "bg-white text-slate-900 shadow-sm border border-slate-200/60" 
+                        ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg hover:from-violet-700 hover:to-purple-700 hover:shadow-xl" 
                         : "text-slate-600 hover:text-slate-900"
                     )}
                     style={{fontFamily:'Inter,system-ui,sans-serif'}}
                   >
                     <route.icon className={cn(
                       "mr-3 h-4 w-4",
-                      pathname === route.href ? "text-slate-700" : "text-slate-500"
+                      pathname === route.href ? "text-white" : "text-slate-500"
                     )} />
-                    <span>{route.label}</span>
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        pathname === route.href ? "text-white" : "text-slate-500"
+                      )}
+                    >{route.label}</span>
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
@@ -228,18 +233,18 @@ export function AppSidebar() {
                     isActive={pathname === route.href}
                     disabled={route.disabled}
                     className={cn(
-                      "w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      "w-full rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200",
                       "hover:bg-white/60 hover:shadow-sm",
                       route.disabled && "opacity-50 cursor-not-allowed",
                       pathname === route.href 
-                        ? "bg-white text-slate-900 shadow-sm border border-slate-200/60" 
+                        ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg hover:from-violet-700 hover:to-purple-700 hover:shadow-xl" 
                         : "text-slate-600 hover:text-slate-900"
                     )}
                     style={{fontFamily:'Inter,system-ui,sans-serif'}}
                   >
                     <route.icon className={cn(
                       "mr-3 h-4 w-4",
-                      pathname === route.href ? "text-slate-700" : "text-slate-500"
+                      pathname === route.href ? "text-white" : "text-slate-500"
                     )} />
                     <span className="flex-1">{route.label}</span>
                     {route.badge && (
@@ -306,18 +311,18 @@ export function AppSidebar() {
               <SidebarMenuButton 
                 disabled={route.disabled}
                 className={cn(
-                  "w-full rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                  "w-full rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200",
                   "hover:bg-white/60 hover:shadow-sm",
                   route.disabled && "opacity-50 cursor-not-allowed",
                   pathname === route.href 
-                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/60" 
+                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg hover:from-violet-700 hover:to-purple-700 hover:shadow-xl" 
                     : "text-slate-600 hover:text-slate-900"
                 )}
                 style={{fontFamily:'Inter,system-ui,sans-serif'}}
               >
                 <route.icon className={cn(
                   "mr-3 h-4 w-4",
-                  pathname === route.href ? "text-slate-700" : "text-slate-500"
+                  pathname === route.href ? "text-white" : "text-slate-500"
                 )} />
                 <span>{route.label}</span>
               </SidebarMenuButton>
