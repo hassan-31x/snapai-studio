@@ -172,14 +172,30 @@ export function AppSidebar() {
         </div>
 
         {/* Credits */}
-        <div className="mt-3 flex items-center gap-2">
-          <div className="flex items-center gap-2 px-3 py-2 bg-white/60 rounded-lg border border-slate-200/60">
-            <Crown className="w-4 h-4 text-violet-600" />
-            <span className="text-sm font-medium text-slate-900">150</span>
+        <div className="mt-3 flex items-center mx-auto">
+          <div className="flex items-center bg-white border border-slate-200 rounded-full px-2 py-1 shadow-sm gap-1">
+            <div className="flex items-center gap-1">
+              <span className="inline-flex items-center">
+                {/* Lucide Coins icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" className="text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <g>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" fill="#EDE9FE"/>
+                    <path d="M8 15c1.333.667 4.667.667 6 0M8 12c1.333.667 4.667.667 6 0M8 9c1.333.667 4.667.667 6 0" stroke="#A78BFA" strokeWidth="1.2" strokeLinecap="round"/>
+                  </g>
+                </svg>
+              </span>
+              <span className="text-[12px] text-slate-900">150</span>
+            </div>
+            <Button
+              size="sm"
+              className="ml-2 px-3 rounded-full bg-gradient-to-r from-violet-500 to-purple-400 text-white text-[12px] shadow-none border-0 hover:from-violet-600 hover:to-purple-500 focus:ring-0 focus:outline-none transition"
+              style={{
+                boxShadow: "0 0 0 1.5px #E0E7FF"
+              }}
+            >
+              Upgrade
+            </Button>
           </div>
-          <Button size="sm" className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white">
-            Upgrade
-          </Button>
         </div>
       </SidebarHeader>
 
@@ -246,7 +262,10 @@ export function AppSidebar() {
                       "mr-3 h-4 w-4",
                       pathname === route.href ? "text-white" : "text-slate-500"
                     )} />
-                    <span className="flex-1">{route.label}</span>
+                    <span className={cn(
+                    "text-sm font-medium flex-1",
+                    pathname === route.href ? "text-white" : "text-slate-500"
+                    )}>{route.label}</span>
                     {route.badge && (
                       <Badge 
                         variant="secondary" 
@@ -324,7 +343,12 @@ export function AppSidebar() {
                   "mr-3 h-4 w-4",
                   pathname === route.href ? "text-white" : "text-slate-500"
                 )} />
-                <span>{route.label}</span>
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    pathname === route.href ? "text-white" : "text-slate-500"
+                  )}
+                >{route.label}</span>
               </SidebarMenuButton>
             </Link>
           ))}
