@@ -1,6 +1,5 @@
 "use client"
 
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AuthHeader from './header';
 import AuthSocial from './social';
 import BackButton from './back-button';
@@ -22,22 +21,41 @@ const CardWrapper = ({
 }: Props) => {
 
   return (
-    <Card className='w-[400px] shadow-md'>
-      <CardHeader>
+    <div className='w-full max-w-md mx-auto'>
+      {/* Header */}
+      <div className="mb-8">
         <AuthHeader label={headerLabel} />
-      </CardHeader>
-      <CardContent>
-        {children}
-      </CardContent>
+      </div>
+
+      {/* Social Login - Top */}
       {showSocial && (
-        <CardFooter>
+        <div className="mb-6">
           <AuthSocial />
-        </CardFooter>
+        </div>
       )}
-      <CardFooter>
+
+      {/* Divider */}
+      {showSocial && (
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-slate-500 font-medium">or continue with e-mail</span>
+          </div>
+        </div>
+      )}
+
+      {/* Form Content */}
+      <div className="mb-6">
+        {children}
+      </div>
+
+      {/* Bottom Link */}
+      <div className="text-center">
         <BackButton label={backButtonLabel} href={backButtonhref} />
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
 

@@ -4,25 +4,21 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 type Props = {
-  label: string
-  href: string
+  href: string;
+  label: string;
 }
 
-const BackButton = ({
-  label,
-  href,
-}: Props) => {
+const BackButton = ({ href, label }: Props) => {
   return (
-    <Button
-      variant='link'
-      className='font-normal w-full'
-      size='sm'
-      asChild
-    >
-      <Link href={href}>
-        {label}
+    <div className="text-center">
+      <span className="text-sm text-slate-600">{label}</span>{" "}
+      <Link 
+        href={href} 
+        className="text-sm font-semibold text-violet-600 hover:text-violet-700 underline"
+      >
+        {href.includes('register') ? 'Sign Up' : 'Sign In'}
       </Link>
-    </Button>
+    </div>
   )
 }
 

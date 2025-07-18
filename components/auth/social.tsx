@@ -2,7 +2,7 @@
 
 import { signIn } from 'next-auth/react'
 import { FcGoogle } from 'react-icons/fc'
-import { FaGithub } from 'react-icons/fa'
+import { FaGithub, FaApple } from 'react-icons/fa'
 
 import { Button } from '@/components/ui/button'
 import { DEFAULT_LOGIN_REDIRECT } from '@/routes'
@@ -17,22 +17,23 @@ const AuthSocial = (props: Props) => {
   }
 
   return (
-    <div className='flex items-center w-full gap-x-2'>
+    <div className='space-y-3'>
       <Button
         size='lg'
-        className='w-full'
+        className='w-full h-12 bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 font-medium'
         variant='outline'
         onClick={() => handleClick('google')}
       >
-        <FcGoogle className='h-5 w-5' />
+        <FcGoogle className='h-5 w-5 mr-3' />
+        Continue with Google
       </Button>
       <Button
         size='lg'
-        className='w-full'
-        variant='outline'
+        className='w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-medium'
         onClick={() => handleClick('github')}
       >
-        <FaGithub className='h-5 w-5' />
+        <FaApple className='h-5 w-5 mr-3' />
+        Continue with Apple
       </Button>
     </div>
   )
