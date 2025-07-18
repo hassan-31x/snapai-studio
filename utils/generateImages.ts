@@ -227,12 +227,13 @@ async function generateImageWithSource(
   const imageBuffer = await imageResponse.arrayBuffer();
   
   // Create form data for the API request
+  let imageQuality = process.env.NODE_ENV === "production" ? "medium" : "low";
   const formData = new FormData();
   formData.append('model', 'gpt-image-1'); // Image edit only supports dall-e-2
   formData.append('prompt', prompt);
   formData.append('n', '1');
   formData.append('size', '1024x1024');
-  formData.append('quality', 'medium');
+  formData.append('quality', imageQuality);
 
   
   // Add the image buffer
