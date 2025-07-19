@@ -21,7 +21,7 @@ const MainLayout = async ({ children }: Props) => {
   return (
     <SidebarProvider>
       <div className="flex h-screen bg-slate-50/50" style={{fontFamily:'Inter,system-ui,sans-serif'}}>
-        <AppSidebar user={user} />
+        <AppSidebar />
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* <div className="flex items-center justify-between h-14 px-6 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm">
             <div className="flex items-center">

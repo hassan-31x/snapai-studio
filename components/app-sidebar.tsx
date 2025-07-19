@@ -24,7 +24,10 @@ import {
   Settings,
   HelpCircle,
   Crown,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  LogOut,
+  User as UserIcon
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -32,10 +35,15 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User } from "next-auth"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { useSession } from "next-auth/react"
+import LogoutButton from "@/components/auth/logout-button"
 
-export function AppSidebar({ user }: { user: User }) {
+export function AppSidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  console.log("🚀 ~ AppSidebar ~ session:", session)
 
   const mainRoutes = [
     {
@@ -148,7 +156,12 @@ export function AppSidebar({ user }: { user: User }) {
       disabled: true,
     },
   ]
-  console.log("🚀 ~ AppSidebar ~ user:", user)
+  
+  // Get user initials for avatar fallback
+  const getUserInitials = (name: string | null | undefined) => {
+    if (!name) return 'U'
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  }
 
   return (
     <Sidebar className="bg-slate-50/80 border-r border-slate-200/60 backdrop-blur-sm">
@@ -162,16 +175,86 @@ export function AppSidebar({ user }: { user: User }) {
           </span>
         </div>
         
-        {/* User Info */}
-        <div className="mt-4 flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-slate-200/60">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-            H
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-slate-900 truncate">hassan031x</div>
-          </div>
-          <div className="text-xs text-slate-500">⌄</div>
-        </div>
+        {/* User Info Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="mt-4 flex items-center gap-3 p-3 bg-white/60 rounded-xl border border-slate-200/60 cursor-pointer hover:bg-white/80 transition-colors">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={session?.user?.image || ""} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-medium">
+                  {getUserInitials(session?.user?.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-slate-900 truncate">
+                  {session?.user?.name || session?.user?.email || 'User'}
+                </div>
+                {session?.user?.email && session?.user?.name && (
+                  <div className="text-xs text-slate-500 truncate">
+                    {session.user.email}
+                  </div>
+                )}
+              </div>
+              <ChevronDown className="h-4 w-4 text-slate-500" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="w-64 mx-3" 
+            align="start"
+            side="bottom"
+            sideOffset={8}
+          >
+            <div className="px-3 py-2 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={session?.user?.image || ""} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-medium">
+                    {getUserInitials(session?.user?.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-slate-900 truncate">
+                    {session?.user?.name || 'User'}
+                  </div>
+                  <div className="text-xs text-slate-500 truncate">
+                    {session?.user?.email}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/settings" className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/settings" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/premium" className="flex items-center gap-2">
+                <Crown className="h-4 w-4" />
+                <span>Upgrade Plan</span>
+                <Badge className="ml-auto bg-violet-100 text-violet-700 text-xs">Pro</Badge>
+              </Link>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <LogoutButton>
+              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 hover:text-white">
+                <LogOut className="h-4 w-4 mr-2" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </LogoutButton>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Credits */}
         <div className="mt-3 flex items-center mx-auto">
@@ -186,7 +269,7 @@ export function AppSidebar({ user }: { user: User }) {
                   </g>
                 </svg>
               </span>
-              <span className="text-[12px] text-slate-900">150</span>
+              <span className="text-[12px] text-slate-900">{session?.user?.tokens}</span>
             </div>
             <Button
               size="sm"
