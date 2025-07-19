@@ -32,8 +32,9 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { User } from "next-auth"
 
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: User }) {
   const pathname = usePathname()
 
   const mainRoutes = [
@@ -147,6 +148,7 @@ export function AppSidebar() {
       disabled: true,
     },
   ]
+  console.log("🚀 ~ AppSidebar ~ user:", user)
 
   return (
     <Sidebar className="bg-slate-50/80 border-r border-slate-200/60 backdrop-blur-sm">

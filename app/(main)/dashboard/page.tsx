@@ -1,5 +1,4 @@
 import React from 'react';
-import { getAllSubmissions } from "@/actions/get-all-submissions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -24,9 +23,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { imageTypes } from "@/lib/image-types";
+import { db } from '@/lib/db';
+import { auth } from '@/auth';
 
 const Dashboard = async () => {
-  const submissions = await getAllSubmissions();
+  // const session = await auth(); // server function, hence can also be used in api routes
+  // const user = session?.user;
+  // console.log("🚀 ~ Dashboard ~ user:", user)
+  
+  const submissions = await db.submission.findMany({
+    orderBy: { createdAt: "desc" },
+  });
   
   // Generate dummy data for missing information
   const generateDummyData = () => {

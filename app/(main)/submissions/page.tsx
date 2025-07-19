@@ -1,4 +1,3 @@
-import { getAllSubmissions } from "@/actions/get-all-submissions";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,9 +5,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import ImageSlider from "./_components/image-slider";
 import { ArrowRight } from "lucide-react";
+import { db } from "@/lib/db";
 
 export default async function SubmissionsPage() {
-  const submissions = await getAllSubmissions();
+  const submissions = await db.submission.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+
   const categories = [
     ...Array.from(new Set(submissions.map((s) => s.productCategory).filter(Boolean))),
   ];

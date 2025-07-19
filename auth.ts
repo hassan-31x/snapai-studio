@@ -61,6 +61,7 @@ export const {
         session.user.email = token.email!
         session.user.isOAuth = token.isOAuth as boolean
         session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean
+        session.user.tokens = token.tokens as number
       }
 
       return session;

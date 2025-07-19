@@ -38,6 +38,7 @@ model User {
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
 
+  tokens                Int                    @default(100)
   generatedImages       Int                    @default(0)
   submissions          Submission[]           @relation("UserSubmissions")
 }
