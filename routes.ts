@@ -1,7 +1,6 @@
 export const publicRoutes = [
   "/",
   "/auth/verify-email",
-  "/submissions",
   "/api/waitlist"
 ]
 

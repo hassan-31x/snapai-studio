@@ -48,7 +48,6 @@ export const {
       return true;
     },
     async session({ token, session }) {
-      console.log("🚀 ~ session ~ token:", token)
       if (token.sub && session.user) {
         session.user.id = token.sub
       }
@@ -65,19 +64,15 @@ export const {
         session.user.tokens = token.tokens as number
       }
 
-      console.log("🚀 ~ session ~ session:", session)
-
       return session;
     },
     async jwt({ token, user }) {
       if (!token.sub) return token
 
       const existingUser = await getUserById(token.sub)
-      console.log("🚀 ~ jwt ~ existingUser:", existingUser)
       if (!existingUser) return token
 
       const existingAccount = await getAccountByUserId(existingUser.id)
-      console.log("🚀 ~ jwt ~ existingAccount:", existingAccount)
 
       token.isOAuth = !!existingAccount
       token.name = existingUser.name
