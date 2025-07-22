@@ -41,6 +41,7 @@ model User {
   tokens                Int                    @default(100)
   generatedImages       Int                    @default(0)
   submissions          Submission[]           @relation("UserSubmissions")
+  productImages        ProductImage[]         @relation("UserProductImages")
 }
 
 model Account {
@@ -133,4 +134,31 @@ model Submission {
   linkedinPostImagePublicId String
   websiteBannerImageUrl   String
   websiteBannerImagePublicId String
+}
+
+enum ProductImageType {
+  Original
+  Variation
+  Upscaled
+}
+
+model ProductImage {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user User @relation("UserProductImages", fields: [userId], references: [id])
+
+  prompt String
+  aspectRatio String
+  scene String
+
+  imageUrl String
+  imagePublicId String
+  type ProductImageType
+  originalImageUrl String?
+  originalImagePublicId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("product_images")
 }

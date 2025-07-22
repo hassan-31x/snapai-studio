@@ -1,4 +1,3 @@
-import { getSubmissionById } from "@/actions/get-submission";
 import { notFound } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,11 +5,17 @@ import { CheckCircle, Image as ImageIcon } from "lucide-react";
 import SingleDownload from "../_components/single-download";
 import MultipleDownload from "../_components/multiple-download";
 import { imageTypes } from "@/lib/image-types";
+import { db } from "@/lib/db";
 
 
 export default async function SubmissionPage({ params }: any) {
   const id = await params.id;
-  const submission = await getSubmissionById(id);
+  const submission = await db.submission.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
 
   if (!submission) return notFound();
 
