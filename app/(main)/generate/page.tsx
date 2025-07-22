@@ -55,7 +55,7 @@ const categories = [
   "Productivity", "Entertainment", "Education", "Eco-Friendly"
 ];
 
-const SubmitProduct = () => {
+const Generate = () => {
   const [form, setForm] = useState(initialForm);
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
@@ -636,4 +636,4 @@ const SubmitProduct = () => {
   );
 };
 
-export default SubmitProduct;
+export default Generate;
