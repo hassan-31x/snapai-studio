@@ -136,7 +136,7 @@ export function PromptAssistantModal({ open, onOpenChange, onPromptGenerated }: 
             Prompt Assistant
           </DialogTitle>
           <p className="text-sm text-slate-600">
-            Tell us about your product and we'll create the perfect prompt for your shot
+            Tell us about your product and we&apos;ll create the perfect prompt for your shot
           </p>
         </DialogHeader>
 
