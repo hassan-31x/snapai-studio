@@ -131,7 +131,8 @@ export function ImageActions({ image, onVariationsGenerated, onVariationsStarted
                 variant="ghost"
                 size="sm"
                 onClick={handleUpscale}
-                disabled={upscalePending}
+                disabled={true}
+                // disabled={upscalePending}
                 className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-slate-900 rounded-md hover:text-slate-900"
               >
                 {upscalePending ? (
