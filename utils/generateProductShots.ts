@@ -3,10 +3,12 @@ import { uploadToCloudinary, uploadBase64ToCloudinary } from '@/lib/cloudinary';
 import { generateSceneDetails, buildScenePrompt, ScenePromptParams } from './scenePrompts';
 
 export interface GeneratedProductImage {
+  id?: string;
   imageUrl: string;
   publicId: string;
   aspectRatio: string;
   scene: string;
+  prompt: string;
 }
 
 export interface ProductShotGenerationResponse {
@@ -128,7 +130,7 @@ async function generateSingleProductShotWithUniqueScene(
 
   } catch (error) {
     console.error(`Error generating unique product shot ${index + 1}:`, error);
-    return useFallbackProductImage(params.aspectRatio, params.scene, index);
+    return useFallbackProductImage(params.aspectRatio, params.scene, index, params.prompt);
   }
 }
 
@@ -148,7 +150,7 @@ async function generateSingleProductShot(
     // Check if we have an OpenAI API key
     if (!process.env.OPENAI_API_KEY) {
       console.warn("OpenAI API key not found, using fallback image");
-      return useFallbackProductImage(aspectRatio, scene, index);
+      return useFallbackProductImage(aspectRatio, scene, index, prompt);
     }
 
     // Download the source image
@@ -187,7 +189,7 @@ async function generateSingleProductShot(
     
     if (!response.ok) {
       console.error("OpenAI API error:", responseText);
-      return useFallbackProductImage(aspectRatio, scene, index);
+      return useFallbackProductImage(aspectRatio, scene, index, prompt);
     }
 
     const data = JSON.parse(responseText) as { data: Array<{ url?: string, b64_json?: string }> };
@@ -204,7 +206,7 @@ async function generateSingleProductShot(
         imageData = data.data[0].b64_json;
       } else {
         console.error("No image data in response");
-        return useFallbackProductImage(aspectRatio, scene, index);
+        return useFallbackProductImage(aspectRatio, scene, index, prompt);
       }
       
       // Upload to Cloudinary
@@ -217,23 +219,24 @@ async function generateSingleProductShot(
         imageUrl: result.secure_url,
         publicId: result.public_id,
         aspectRatio,
-        scene
+        scene,
+        prompt
       };
     } else {
       console.error("No image data in response");
-      return useFallbackProductImage(aspectRatio, scene, index);
+      return useFallbackProductImage(aspectRatio, scene, index, prompt);
     }
     
   } catch (error) {
     console.error(`Error generating product shot ${index + 1}:`, error);
-    return useFallbackProductImage(aspectRatio, scene, index);
+    return useFallbackProductImage(aspectRatio, scene, index, prompt);
   }
 }
 
 /**
  * Use a fallback image when OpenAI API fails
  */
-async function useFallbackProductImage(aspectRatio: string, scene: string, index: number): Promise<GeneratedProductImage> {
+async function useFallbackProductImage(aspectRatio: string, scene: string, index: number, prompt: string = "Fallback product shot"): Promise<GeneratedProductImage> {
   const fallbackUrls = [
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8",
     "https://images.unsplash.com/photo-1560472355-536de3962603",
@@ -258,7 +261,8 @@ async function useFallbackProductImage(aspectRatio: string, scene: string, index
       imageUrl: result.secure_url,
       publicId: result.public_id,
       aspectRatio,
-      scene
+      scene,
+      prompt
     };
   } catch (error) {
     console.error("Error uploading fallback image:", error);
@@ -266,7 +270,8 @@ async function useFallbackProductImage(aspectRatio: string, scene: string, index
       imageUrl: `https://via.placeholder.com/${aspectRatio.replace('x', 'x')}/f0f0f0/999999?text=Product+Shot`,
       publicId: `fallback-${uuidv4()}`,
       aspectRatio,
-      scene
+      scene,
+      prompt
     };
   }
 }
@@ -279,6 +284,7 @@ function getDummyProductImages(params: ProductShotParams): GeneratedProductImage
     imageUrl: `https://via.placeholder.com/${params.aspectRatio.replace('x', 'x')}/f0f0f0/999999?text=Product+Shot+${index + 1}`,
     publicId: `dummy-product-shot-${index + 1}-${uuidv4()}`,
     aspectRatio: params.aspectRatio,
-    scene: params.scene
+    scene: params.scene,
+    prompt: `Dummy product shot ${index + 1} for ${params.prompt}`
   }));
 }

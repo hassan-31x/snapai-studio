@@ -42,6 +42,7 @@ model User {
   generatedImages       Int                    @default(0)
   submissions          Submission[]           @relation("UserSubmissions")
   productImages        ProductImage[]         @relation("UserProductImages")
+  generations          Generation[]           @relation("UserGenerations")
 }
 
 model Account {
@@ -104,6 +105,8 @@ model Submission {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
   userId            String   @db.ObjectId
   user              User     @relation("UserSubmissions", fields: [userId], references: [id])
+  generationId      String?  @db.ObjectId
+  generation        Generation? @relation("SubmissionGeneration", fields: [generationId], references: [id])
   createdAt         DateTime @default(now())
   productName       String
   productTagline    String
@@ -142,10 +145,68 @@ enum ProductImageType {
   Upscaled
 }
 
+enum GenerationType {
+  AD_CREATIVE
+  PRODUCT_SHOT
+}
+
+enum GenerationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Generation {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user User @relation("UserGenerations", fields: [userId], references: [id])
+
+  type GenerationType
+  status GenerationStatus @default(PENDING)
+  
+  // Generation parameters
+  prompt String?
+  aspectRatio String?
+  scene String?
+  numberOfImages Int @default(1)
+  
+  // Product details (for ad creatives)
+  productName String?
+  productCategory String?
+  productTagline String?
+  productDescription String?
+  brandName String?
+  brandTone String?
+  colorTheme String?
+  backgroundStyle String?
+  lightingStyle String?
+  productPlacement String?
+  typographyStyle String?
+  compositionGuidelines String?
+  highlightedBenefit String?
+  
+  // Original uploaded image
+  originalImageUrl String?
+  originalImagePublicId String?
+  
+  // Related data
+  submissions Submission[] @relation("SubmissionGeneration")
+  productImages ProductImage[] @relation("GenerationProductImages")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("generations")
+}
+
 model ProductImage {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
   user User @relation("UserProductImages", fields: [userId], references: [id])
+
+  generationId String @db.ObjectId
+  generation Generation @relation("GenerationProductImages", fields: [generationId], references: [id])
 
   prompt String
   aspectRatio String

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -12,13 +12,15 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { submitProductAction } from "@/actions/submit-product";
 import { generateProductShotsAction } from "@/actions/generate-product-shots";
-import { 
-  CheckCircle, 
-  Image as ImageIcon, 
-  Loader2, 
-  Upload, 
-  Sparkles, 
-  ArrowRight, 
+import { getGenerationAction } from "@/actions/get-generation";
+import { useSearchParams, useRouter } from "next/navigation";
+import {
+  CheckCircle,
+  Image as ImageIcon,
+  Loader2,
+  Upload,
+  Sparkles,
+  ArrowRight,
   Download,
   Instagram,
   Linkedin,
@@ -36,6 +38,7 @@ import {
 import { useSession } from "next-auth/react";
 import { AIAssistantModal } from "@/components/ai-assistant-modal";
 import { PromptAssistantModal } from "@/components/prompt-assistant-modal";
+import { ImageActions } from "@/components/image-actions";
 import { enhancePrompt } from "@/actions/prompt-assistance";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
@@ -67,7 +70,7 @@ const initialProductShotForm = {
 };
 
 const categories = [
-  "Technology", "Fashion", "Home", "Beauty", "Health", "Food", "Fitness", 
+  "Technology", "Fashion", "Home", "Beauty", "Health", "Food", "Fitness",
   "Productivity", "Entertainment", "Education", "Eco-Friendly"
 ];
 
@@ -151,8 +154,185 @@ const Generate = () => {
   const [showPromptAssistant, setShowPromptAssistant] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [variations, setVariations] = useState<any[]>([]);
+  const [upscaledImages, setUpscaledImages] = useState<any[]>([]);
+  const [loadingVariations, setLoadingVariations] = useState(0); // Number of variations being generated
+  const [isLoadingSession, setIsLoadingSession] = useState(true); // Loading state for session data
 
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (!id) setIsLoadingSession(false);
+
+    console.log("useEffect triggered - Generation ID:", id, "User ID:", session?.user?.id);
+
+    if (id && session?.user?.id) {
+      console.log("Fetching generation data for ID:", id);
+      setIsLoadingSession(true);
+      
+      // Fetch the generation details using the ID
+      startTransition(async () => {
+        try {
+          const res = await getGenerationAction(id, session.user.id!);
+          console.log("Generation response:", res);
+          
+          if (res.success && res.generation) {
+            console.log("Setting up generation data:", res.generation);
+            
+            // Set the creation type based on generation type
+            setCreationType(res.generation.type === "AD_CREATIVE" ? "ad_creative" : "product_shot");
+            
+            // Populate form based on generation type
+            if (res.generation.type === "AD_CREATIVE") {
+              console.log("Setting up AD_CREATIVE form data");
+              setForm((prev) => ({
+                ...prev,
+                productName: res.generation!.productName || prev.productName,
+                productTagline: res.generation!.productTagline || prev.productTagline,
+                productCategory: res.generation!.productCategory || prev.productCategory,
+                highlightedBenefit: res.generation!.highlightedBenefit || prev.highlightedBenefit,
+                productDescription: res.generation!.productDescription || prev.productDescription,
+                brandName: res.generation!.brandName || prev.brandName,
+                brandTone: res.generation!.brandTone || prev.brandTone,
+                colorTheme: res.generation!.colorTheme || prev.colorTheme,
+                backgroundStyle: res.generation!.backgroundStyle || prev.backgroundStyle,
+                lightingStyle: res.generation!.lightingStyle || prev.lightingStyle,
+                productPlacement: res.generation!.productPlacement || prev.productPlacement,
+                typographyStyle: res.generation!.typographyStyle || prev.typographyStyle,
+                compositionGuidelines: res.generation!.compositionGuidelines || prev.compositionGuidelines
+              }));
+              
+              // Set result to show ad creative submission data
+              const generationWithSubmissions = res.generation as any;
+              console.log("Submissions data:", generationWithSubmissions.submissions);
+              
+              if (generationWithSubmissions.submissions && generationWithSubmissions.submissions.length > 0) {
+                const submission = generationWithSubmissions.submissions[0]; // Get the first submission
+                console.log("Found submission:", submission);
+                
+                const creatives = [
+                  { 
+                    title: "Instagram Post", 
+                    imageUrl: submission.instagramPostImageUrl,
+                    type: "instagram_post",
+                    dimensions: "1080 × 1080"
+                  },
+                  { 
+                    title: "Instagram Story", 
+                    imageUrl: submission.instagramStoryImageUrl,
+                    type: "instagram_story",
+                    dimensions: "1080 × 1920"
+                  },
+                  { 
+                    title: "Facebook Post", 
+                    imageUrl: submission.facebookPostImageUrl,
+                    type: "facebook_post",
+                    dimensions: "1200 × 630"
+                  },
+                  { 
+                    title: "LinkedIn Post", 
+                    imageUrl: submission.linkedinPostImageUrl,
+                    type: "linkedin_post",
+                    dimensions: "1200 × 627"
+                  },
+                  { 
+                    title: "Website Banner", 
+                    imageUrl: submission.websiteBannerImageUrl,
+                    type: "website_banner",
+                    dimensions: "1200 × 300"
+                  }
+                ].filter(creative => creative.imageUrl); // Only include creatives with images
+                
+                console.log("Setting creatives result:", creatives);
+                setResult({
+                  success: true,
+                  creatives,
+                  submissionId: submission.id
+                });
+              }
+            } else {
+              console.log("Setting up PRODUCT_SHOT form data");
+              setProductShotForm((prev) => ({
+                ...prev,
+                prompt: res.generation!.prompt || prev.prompt,
+                aspectRatio: res.generation!.aspectRatio || prev.aspectRatio,
+                scene: res.generation!.scene || prev.scene,
+                numberOfImages: res.generation!.numberOfImages || prev.numberOfImages
+              }));
+              
+              // Set result to show product shot images
+              const generationWithImages = res.generation as any;
+              console.log("Product images data:", generationWithImages.productImages);
+              
+              if (generationWithImages.productImages && generationWithImages.productImages.length > 0) {
+                const originalImages = generationWithImages.productImages.filter((img: any) => img.type === "Original");
+                const variationImages = generationWithImages.productImages.filter((img: any) => img.type === "Variation");
+                const upscaledImages = generationWithImages.productImages.filter((img: any) => img.type === "Upscaled");
+                
+                console.log("Original images:", originalImages);
+                console.log("Variation images:", variationImages);
+                console.log("Upscaled images:", upscaledImages);
+                
+                setResult({
+                  success: true,
+                  images: originalImages.map((img: any) => ({
+                    id: img.id,
+                    imageUrl: img.imageUrl,
+                    prompt: img.prompt,
+                    aspectRatio: img.aspectRatio,
+                    scene: img.scene,
+                    publicId: img.imagePublicId
+                  })),
+                  originalImage: res.generation.originalImageUrl ? {
+                    url: res.generation.originalImageUrl,
+                    publicId: res.generation.originalImagePublicId
+                  } : null
+                });
+                
+                // Set variations and upscaled images
+                setVariations(variationImages.map((img: any) => ({
+                  id: img.id,
+                  imageUrl: img.imageUrl,
+                  prompt: img.prompt,
+                  aspectRatio: img.aspectRatio,
+                  scene: img.scene,
+                  publicId: img.imagePublicId
+                })));
+                
+                setUpscaledImages(upscaledImages.map((img: any) => ({
+                  id: img.id,
+                  imageUrl: img.imageUrl,
+                  prompt: img.prompt,
+                  aspectRatio: img.aspectRatio,
+                  scene: img.scene,
+                  publicId: img.imagePublicId
+                })));
+              }
+            }
+            
+            // Set file preview from original image
+            if (res.generation.originalImageUrl) {
+              console.log("Setting file preview:", res.generation.originalImageUrl);
+              setFilePreview(res.generation.originalImageUrl);
+            }
+            
+            setIsLoadingSession(false);
+          } else {
+            console.error("Failed to fetch generation details:", res.error);
+            // If generation not found, redirect to /generate
+            router.push('/generate');
+          }
+        } catch (error) {
+          console.error("Error fetching generation details:", error);
+          // If error occurred, redirect to /generate
+          router.push('/generate');
+        }
+      });
+    }
+  }, [searchParams, session, startTransition, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, files } = e.target as any;
@@ -213,6 +393,19 @@ const Generate = () => {
     setProductShotForm((prev) => ({ ...prev, numberOfImages: value[0] }));
   };
 
+  const handleVariationsGenerated = (newVariations: any[]) => {
+    setVariations(prev => [...prev, ...newVariations]);
+    setLoadingVariations(0); // Clear loading state when variations are ready
+  };
+
+  const handleVariationsStarted = (numberOfVariations: number) => {
+    setLoadingVariations(numberOfVariations);
+  };
+
+  const handleImageUpscaled = (upscaledImage: any) => {
+    setUpscaledImages(prev => [...prev, upscaledImage]);
+  };
+
   const handlePromptGenerated = (prompt: string) => {
     setProductShotForm((prev) => ({ ...prev, prompt }));
   };
@@ -259,7 +452,7 @@ const Generate = () => {
   const renderLoadingPlaceholders = () => {
     const numberOfImages = creationType === "product_shot" ? productShotForm.numberOfImages : 5;
     const aspectRatio = creationType === "product_shot" ? productShotForm.aspectRatio : "1024x1024";
-    
+
     return Array.from({ length: numberOfImages }, (_, index) => (
       <div
         key={index}
@@ -281,20 +474,33 @@ const Generate = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const currentGenerationId = searchParams.get("id");
+    
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
       if (value) formData.append(key, value as string);
     });
     if (file) formData.append("productImage", file);
     formData.append("userId", session?.user?.id || "");
+    
+    // Add existing generation ID if continuing a session
+    if (currentGenerationId) {
+      formData.append("generationId", currentGenerationId);
+    }
+    
     setResult(null);
     setIsGenerating(true);
-    
+
     startTransition(async () => {
       try {
         const res = await submitProductAction(formData);
         setResult(res);
         setIsGenerating(false);
+        
+        // If this is the first generation (no existing ID), redirect to include the generation ID
+        if (res.success && res.generationId && !currentGenerationId) {
+          router.push(`/generate?id=${res.generationId}`);
+        }
       } catch (error) {
         console.error("Error submitting product:", error);
         setIsGenerating(false);
@@ -307,6 +513,8 @@ const Generate = () => {
     e.preventDefault();
     if (!file || !productShotForm.prompt.trim()) return;
 
+    const currentGenerationId = searchParams.get("id");
+    
     const formData = new FormData();
     formData.append("userId", session?.user?.id || "");
     formData.append("prompt", productShotForm.prompt);
@@ -315,6 +523,11 @@ const Generate = () => {
     formData.append("numberOfImages", productShotForm.numberOfImages.toString());
     formData.append("productImage", file);
     
+    // Add existing generation ID if continuing a session
+    if (currentGenerationId) {
+      formData.append("generationId", currentGenerationId);
+    }
+
     // Add similar images
     similarImages.forEach((img, index) => {
       formData.append(`similarImage_${index}`, img);
@@ -322,12 +535,17 @@ const Generate = () => {
 
     setResult(null);
     setIsGenerating(true);
-    
+
     startTransition(async () => {
       try {
         const res = await generateProductShotsAction(formData);
         setResult(res);
         setIsGenerating(false);
+        
+        // If this is the first generation (no existing ID), redirect to include the generation ID
+        if (res.success && res.generationId && !currentGenerationId) {
+          router.push(`/generate?id=${res.generationId}`);
+        }
       } catch (error) {
         console.error("Error generating product shots:", error);
         setIsGenerating(false);
@@ -392,8 +610,19 @@ const Generate = () => {
   // Helper to download all images
   const downloadAllImages = async () => {
     if (creationType === "product_shot" && result?.images) {
+      // Download original images
       for (const [index, image] of result.images.entries()) {
         await downloadImage(image.imageUrl, `product-shot-${index + 1}.png`);
+      }
+
+      // Download variations
+      for (const [index, variation] of variations.entries()) {
+        await downloadImage(variation.imageUrl, `variation-${index + 1}.png`);
+      }
+
+      // Download upscaled images
+      for (const [index, upscaled] of upscaledImages.entries()) {
+        await downloadImage(upscaled.imageUrl, `upscaled-${index + 1}.png`);
       }
     } else if (result?.creatives) {
       for (const creative of result.creatives) {
@@ -672,16 +901,16 @@ const Generate = () => {
                       onClick={() => handleAspectRatioChange(ratio.value)}
                       className={`
                         flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all
-                        ${productShotForm.aspectRatio === ratio.value 
-                          ? 'border-violet-500 bg-violet-50 text-violet-700' 
+                        ${productShotForm.aspectRatio === ratio.value
+                          ? 'border-violet-500 bg-violet-50 text-violet-700'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                         }
                       `}
                     >
                       <div className={`
                         border-2 rounded mb-2 transition-colors
-                        ${productShotForm.aspectRatio === ratio.value 
-                          ? 'border-violet-400' 
+                        ${productShotForm.aspectRatio === ratio.value
+                          ? 'border-violet-400'
                           : 'border-slate-300'
                         }
                         ${ratio.value === '1024x1024' ? 'w-4 h-4' : ''}
@@ -821,7 +1050,7 @@ const Generate = () => {
         <div className="flex-1 flex flex-col">
           {/* Prompt input - always visible at top when there's content */}
           {(isGenerating || result) && (
-            <div className="p-4 border-b border-slate-200/60 bg-white/95 backdrop-blur-sm">
+            <div className="p-4 ">
               <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm">
                   <div className="space-y-3">
@@ -841,13 +1070,16 @@ const Generate = () => {
                         onClick={() => {
                           setResult(null);
                           setIsGenerating(false);
+                          setVariations([]);
+                          setUpscaledImages([]);
+                          setLoadingVariations(0);
                         }}
                         className="h-8 px-3 text-xs"
                       >
                         New Generation
                       </Button>
                     </div>
-                    
+
                     {/* Full width input */}
                     <div className="w-full">
                       <textarea
@@ -856,9 +1088,9 @@ const Generate = () => {
                         readOnly
                       />
                     </div>
-                    
+
                     {/* Meta details below input */}
-                    <div className="flex items-center justify-center gap-6 text-xs text-slate-500">
+                    {/* <div className="flex items-center justify-center gap-6 text-xs text-slate-500">
                       <div className="flex items-center gap-1">
                         <span>Images:</span>
                         <span className="font-medium">{creationType === "product_shot" ? productShotForm.numberOfImages : 5}</span>
@@ -873,7 +1105,7 @@ const Generate = () => {
                         <span>Type:</span>
                         <span className="font-medium">{creationType === "ad_creative" ? "Ad Creative" : "Product Shot"}</span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
@@ -883,7 +1115,16 @@ const Generate = () => {
           {/* Main playground area */}
           <div className="flex-1 p-8 bg-gradient-to-br from-slate-50/50 via-white to-indigo-50/30">
             <div className="max-w-6xl mx-auto h-full">
-              {!isGenerating && !result ? (
+              {isLoadingSession ? (
+                /* Loading session data */
+                <div className="h-full flex flex-col items-center justify-center space-y-6">
+                  <div className="flex flex-col items-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-violet-600 mb-4" />
+                    <h2 className="text-xl font-semibold text-slate-900 mb-2">Loading Session</h2>
+                    <p className="text-slate-600">Fetching your generation data...</p>
+                  </div>
+                </div>
+              ) : !isGenerating && !result ? (
                 /* Initial state - center prompt input */
                 <div className="h-full flex flex-col items-center justify-center space-y-6">
                   <div className="w-full max-w-4xl space-y-6">
@@ -905,7 +1146,7 @@ const Generate = () => {
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-3">
                           {creationType === "product_shot" ? (
                             <div className="space-y-2">
@@ -959,9 +1200,9 @@ const Generate = () => {
                               readOnly
                             />
                           )}
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+
+                          <div className="flex items-center justify-end">
+                            {/* <div className="flex items-center gap-2">
                               <Button variant="ghost" size="sm" className="h-8 px-3 text-xs bg-violet-50 text-violet-700 hover:bg-violet-100">
                                 <ImageIcon className="h-3 w-3 mr-1" />
                                 Image
@@ -973,8 +1214,8 @@ const Generate = () => {
                               <Button variant="ghost" size="sm" className="h-8 px-3 text-xs">
                                 Flow State
                               </Button>
-                            </div>
-                            
+                            </div> */}
+
                             <Button
                               type="submit"
                               form={creationType === "ad_creative" ? "product-form" : undefined}
@@ -1048,7 +1289,7 @@ const Generate = () => {
                           {isGenerating ? "Generating Images..." : "Generated Images"}
                         </h2>
                         <p className="text-slate-600">
-                          {isGenerating 
+                          {isGenerating
                             ? `Creating ${creationType === "product_shot" ? productShotForm.numberOfImages : 5} images for your ${creationType === "product_shot" ? "product shot" : "ad campaign"}...`
                             : `Your ${creationType === "product_shot" ? "product shots" : "ad creatives"} are ready!`
                           }
@@ -1075,31 +1316,109 @@ const Generate = () => {
                       ) : result && result.success ? (
                         /* Show generated images */
                         creationType === "product_shot" ? (
-                          result.images?.map((image: any, index: number) => (
-                            <div
-                              key={index}
-                              className={`${getAspectRatioClass(productShotForm.aspectRatio)} bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group max-w-sm mx-auto w-full`}
-                            >
-                              <div className="relative h-full">
-                                <img
-                                  src={image.imageUrl}
-                                  alt={`Product shot ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() => downloadImage(image.imageUrl, `product-shot-${index + 1}.png`)}
-                                    className="bg-white/90 hover:bg-white text-slate-900"
-                                  >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Download
-                                  </Button>
+                          <>
+                            {/* Original Generated Images */}
+                            {result.images?.map((image: any, index: number) => (
+                              <div
+                                key={`original-${index}`}
+                                className={`${getAspectRatioClass(productShotForm.aspectRatio)} bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group max-w-sm mx-auto w-full`}
+                              >
+                                <div className="relative h-full">
+                                  <img
+                                    src={image.imageUrl}
+                                    alt={`Product shot ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {image.id && (
+                                    <ImageActions
+                                      image={image}
+                                      onVariationsGenerated={handleVariationsGenerated}
+                                      onVariationsStarted={handleVariationsStarted}
+                                      onImageUpscaled={handleImageUpscaled}
+                                      userId={session?.user?.id || ""}
+                                    />
+                                  )}
                                 </div>
                               </div>
-                            </div>
-                          ))
+                            ))}
+
+                            {/* Variation Images */}
+                            {variations.map((variation, index) => (
+                              <div
+                                key={`variation-${index}`}
+                                className={`${getAspectRatioClass(productShotForm.aspectRatio)} bg-white rounded-xl border border-violet-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group max-w-sm mx-auto w-full relative`}
+                              >
+                                <div className="absolute top-2 left-2 z-10">
+                                  <span className="bg-violet-600 text-white text-xs px-2 py-1 rounded-full">
+                                    Variation
+                                  </span>
+                                </div>
+                                <div className="relative h-full">
+                                  <img
+                                    src={variation.imageUrl}
+                                    alt={`Variation ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <ImageActions
+                                    image={variation}
+                                    onVariationsGenerated={handleVariationsGenerated}
+                                    onVariationsStarted={handleVariationsStarted}
+                                    onImageUpscaled={handleImageUpscaled}
+                                    userId={session?.user?.id || ""}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Loading Variation Placeholders */}
+                            {Array.from({ length: loadingVariations }, (_, index) => (
+                              <div
+                                key={`loading-variation-${index}`}
+                                className={`${getAspectRatioClass(productShotForm.aspectRatio)} bg-slate-100 rounded-xl border border-violet-200 overflow-hidden shadow-sm relative max-w-sm mx-auto w-full`}
+                              >
+                                <div className="absolute top-2 left-2 z-10">
+                                  <span className="bg-violet-600 text-white text-xs px-2 py-1 rounded-full">
+                                    Variation
+                                  </span>
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-violet-50 to-purple-50 opacity-50" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="flex flex-col items-center">
+                                    <Loader2 className="h-8 w-8 animate-spin text-violet-600 mb-2" />
+                                    <span className="text-sm text-violet-600 font-medium">Generating...</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Upscaled Images */}
+                            {upscaledImages.map((upscaled, index) => (
+                              <div
+                                key={`upscaled-${index}`}
+                                className={`${getAspectRatioClass(productShotForm.aspectRatio)} bg-white rounded-xl border border-green-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group max-w-sm mx-auto w-full relative`}
+                              >
+                                <div className="absolute top-2 left-2 z-10">
+                                  <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                                    Upscaled
+                                  </span>
+                                </div>
+                                <div className="relative h-full">
+                                  <img
+                                    src={upscaled.imageUrl}
+                                    alt={`Upscaled ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <ImageActions
+                                    image={upscaled}
+                                    onVariationsGenerated={handleVariationsGenerated}
+                                    onVariationsStarted={handleVariationsStarted}
+                                    onImageUpscaled={handleImageUpscaled}
+                                    userId={session?.user?.id || ""}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </>
                         ) : (
                           /* Ad creative results */
                           result.creatives?.map((creative: any, index: number) => (
@@ -1118,15 +1437,25 @@ const Generate = () => {
                                   <p className="text-white/80 text-xs">{creative.dimensions}</p>
                                 </div>
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    onClick={() => downloadImage(creative.imageUrl, creative.title)}
-                                    className="bg-white/90 hover:bg-white text-slate-900"
-                                  >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Download
-                                  </Button>
+                                  <div className="bg-black/30 backdrop-blur-sm rounded-lg p-1">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => downloadImage(creative.imageUrl, creative.title)}
+                                            className="h-8 w-8 p-0 bg-white/90 hover:bg-white text-slate-900 rounded-md"
+                                          >
+                                            <Download className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Download Image</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1163,6 +1492,9 @@ const Generate = () => {
                         onClick={() => {
                           setResult(null);
                           setIsGenerating(false);
+                          setVariations([]);
+                          setUpscaledImages([]);
+                          setLoadingVariations(0);
                         }}
                       >
                         Generate New

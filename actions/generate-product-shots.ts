@@ -3,6 +3,8 @@
 import { db } from "@/lib/db";
 import { generateProductShots, ProductShotGenerationResponse } from "@/utils/generateProductShots";
 import { getUserById } from "@/utils/user";
+import { createGeneration, updateGenerationStatus } from "@/utils/generations";
+import { GenerationType, GenerationStatus } from "@prisma/client";
 
 export interface ProductShotFormData {
   userId: string;
@@ -12,12 +14,14 @@ export interface ProductShotFormData {
   numberOfImages: number;
   productImage: File;
   similarImages?: File[];
+  generationId?: string; // For adding more images to existing generation
 }
 
 // Server action to handle product shot generation
 export async function generateProductShotsAction(formData: FormData) {
   try {
-    const user = await getUserById(formData.get("userId") as string);
+    const userId = formData.get("userId") as string;
+    const user = await getUserById(userId);
 
     if (!user) {
       return { error: "User not found" };
@@ -35,6 +39,7 @@ export async function generateProductShotsAction(formData: FormData) {
     const scene = formData.get("scene") as string || "";
     const numberOfImages = parseInt(formData.get("numberOfImages") as string) || 1;
     const productImage = formData.get("productImage") as File;
+    const existingGenerationId = formData.get("generationId") as string;
 
     // Extract similar images if any
     const similarImages: File[] = [];
@@ -50,7 +55,8 @@ export async function generateProductShotsAction(formData: FormData) {
       scene,
       numberOfImages,
       hasProductImage: !!productImage,
-      similarImagesCount: similarImages.length
+      similarImagesCount: similarImages.length,
+      existingGenerationId
     });
 
     if (!productImage) {
@@ -60,6 +66,23 @@ export async function generateProductShotsAction(formData: FormData) {
     if (!prompt.trim()) {
       return { error: "Prompt is required" };
     }
+
+    // Create or get existing generation
+    let generationId = existingGenerationId;
+    if (!generationId) {
+      const generation = await createGeneration({
+        userId,
+        type: GenerationType.PRODUCT_SHOT,
+        prompt,
+        aspectRatio,
+        scene,
+        numberOfImages,
+      });
+      generationId = generation.id;
+    }
+
+    // Update status to in progress
+    await updateGenerationStatus(generationId, GenerationStatus.IN_PROGRESS);
 
     // Generate product shots
     const response = await generateProductShots({
@@ -71,24 +94,45 @@ export async function generateProductShotsAction(formData: FormData) {
       similarImages
     });
 
-    // Save product images in database
-    const productImagePromises = response.generatedImages.map(async (image: any) => {
-      return db.productImage.create({
+    // Save product images in database linked to generation
+    const savedImages = await Promise.all(
+      response.generatedImages.map(async (image) => {
+        const savedImage = await db.productImage.create({
+          data: {
+            userId: user.id,
+            generationId,
+            prompt: image.prompt,
+            aspectRatio: image.aspectRatio,
+            scene: image.scene,
+            imageUrl: image.imageUrl,
+            imagePublicId: image.publicId,
+            type: "Original",
+            originalImageUrl: response.originalImage?.url || "",
+            originalImagePublicId: response.originalImage?.publicId || "",
+          }
+        });
+        
+        return {
+          id: savedImage.id,
+          imageUrl: savedImage.imageUrl,
+          prompt: savedImage.prompt,
+          aspectRatio: savedImage.aspectRatio,
+          scene: savedImage.scene,
+          publicId: savedImage.imagePublicId
+        };
+      })
+    );
+
+    // Update generation with original image info if not already set
+    if (!existingGenerationId && response.originalImage) {
+      await db.generation.update({
+        where: { id: generationId },
         data: {
-          userId: user.id,
-          prompt,
-          aspectRatio,
-          scene,
-          imageUrl: image.imageUrl,
-          imagePublicId: image.publicId,
-          type: "Variation",
-          originalImageUrl: response.originalImage?.url || "",
-          originalImagePublicId: response.originalImage?.publicId || "",
+          originalImageUrl: response.originalImage.url,
+          originalImagePublicId: response.originalImage.publicId,
         }
       });
-    });
-
-    await Promise.all(productImagePromises);
+    }
 
     // Update user's generated images count
     await db.user.update({
@@ -96,14 +140,29 @@ export async function generateProductShotsAction(formData: FormData) {
       data: { generatedImages: { increment: numberOfImages } }
     });
 
+    // Update status to completed
+    await updateGenerationStatus(generationId, GenerationStatus.COMPLETED);
+
     return {
       success: true,
-      images: response.generatedImages,
+      generationId,
+      images: savedImages,
       originalImage: response.originalImage
     };
 
   } catch (error) {
     console.error("Error in generateProductShotsAction:", error);
+    
+    // If we have a generationId, mark it as failed
+    const generationId = formData.get("generationId") as string;
+    if (generationId) {
+      try {
+        await updateGenerationStatus(generationId, GenerationStatus.FAILED);
+      } catch (updateError) {
+        console.error("Error updating generation status to failed:", updateError);
+      }
+    }
+    
     return {
       success: false,
       error: "Failed to generate product shots. Please try again."

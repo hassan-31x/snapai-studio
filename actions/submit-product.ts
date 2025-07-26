@@ -4,12 +4,14 @@ import { db } from "@/lib/db";
 import { generateCreativeAssets, CreativeAssetsResponse } from "@/utils/generateCreativeAssets";
 import { generateImages, ImageGenerationResponse } from "@/utils/generateImages";
 import { getUserByEmail, getUserById } from "@/utils/user";
+import { createGeneration, updateGenerationStatus } from "@/utils/generations";
+import { GenerationType, GenerationStatus } from "@prisma/client";
 
 // Server action to handle product submission and generate AI creatives
 export async function submitProductAction(formData: FormData) {
   try {
-
-    const user = await getUserById(formData.get("userId") as string)
+    const userId = formData.get("userId") as string;
+    const user = await getUserById(userId);
 
     if (!user) {
       return { error: "User not found" }
@@ -40,6 +42,7 @@ export async function submitProductAction(formData: FormData) {
 
     // Extract product image if available
     const productImage = formData.get("productImage") as File | null;
+    const existingGenerationId = formData.get("generationId") as string;
     
     console.log("Form data received:", {
       productName,
@@ -48,8 +51,35 @@ export async function submitProductAction(formData: FormData) {
       highlightedBenefit,
       brandName,
       brandTone,
-      hasImage: !!productImage
+      hasImage: !!productImage,
+      existingGenerationId
     });
+
+    // Create or get existing generation
+    let generationId = existingGenerationId;
+    if (!generationId) {
+      const generation = await createGeneration({
+        userId,
+        type: GenerationType.AD_CREATIVE,
+        productName,
+        productTagline,
+        productCategory,
+        highlightedBenefit,
+        productDescription,
+        brandName,
+        brandTone,
+        colorTheme,
+        backgroundStyle,
+        lightingStyle,
+        productPlacement,
+        typographyStyle,
+        compositionGuidelines,
+      });
+      generationId = generation.id;
+    }
+
+    // Update status to in progress
+    await updateGenerationStatus(generationId, GenerationStatus.IN_PROGRESS);
 
     // Prepare product data object to pass to image generation
     const productData = {
@@ -88,10 +118,11 @@ export async function submitProductAction(formData: FormData) {
     const imageResponse = await generateImages(creativeAssets, productData, productImage);
     const { generatedImages, originalImage } = imageResponse;
 
-    // Save submission in DB with Cloudinary URLs and public IDs
+    // Save submission in DB with Cloudinary URLs and public IDs, linked to generation
     const submission = await db.submission.create({
       data: {
         userId: user.id,
+        generationId,
         productName,
         productTagline,
         productCategory,
@@ -124,19 +155,45 @@ export async function submitProductAction(formData: FormData) {
       }
     });
 
+    // Update generation with original image info if not already set
+    if (!existingGenerationId && originalImage) {
+      await db.generation.update({
+        where: { id: generationId },
+        data: {
+          originalImageUrl: originalImage.url,
+          originalImagePublicId: originalImage.publicId,
+        }
+      });
+    }
+
     await db.user.update({
       where: { id: user.id },
       data: { generatedImages: { increment: 1 } }
     });
+
+    // Update status to completed
+    await updateGenerationStatus(generationId, GenerationStatus.COMPLETED);
     
     // Return the generated images and submission id to the frontend
     return {
       success: true,
+      generationId,
       creatives: generatedImages,
       submissionId: submission.id
     };
   } catch (error) {
     console.error("Error in submitProductAction:", error);
+    
+    // If we have a generationId, mark it as failed
+    const generationId = formData.get("generationId") as string;
+    if (generationId) {
+      try {
+        await updateGenerationStatus(generationId, GenerationStatus.FAILED);
+      } catch (updateError) {
+        console.error("Error updating generation status to failed:", updateError);
+      }
+    }
+    
     return {
       success: false,
       error: "Failed to generate creative assets. Please try again."
