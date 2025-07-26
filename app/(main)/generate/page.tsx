@@ -1047,7 +1047,7 @@ const Generate = () => {
         </div>
 
         {/* Main Generation Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full overflow-y-auto">
           {/* Prompt input - always visible at top when there's content */}
           {(isGenerating || result) && (
             <div className="p-4 ">
@@ -1113,7 +1113,7 @@ const Generate = () => {
           )}
 
           {/* Main playground area */}
-          <div className="flex-1 p-8 bg-gradient-to-br from-slate-50/50 via-white to-indigo-50/30">
+          <div className="flex-1 p-8 pt-2 bg-gradient-to-br from-slate-50/50 via-white to-indigo-50/30">
             <div className="max-w-6xl mx-auto h-full">
               {isLoadingSession ? (
                 /* Loading session data */
@@ -1282,9 +1282,17 @@ const Generate = () => {
               ) : (
                 /* Generation and results state */
                 <div className="h-full">
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <div className="flex items-center justify-between">
-                      <div>
+                      {isGenerating && <div>
+                        <h2 className="text-xl font-semibold text-slate-900 mb-2">
+                          Generating Images...
+                        </h2>
+                        <p className="text-slate-600">
+                          Creating ${creationType === "product_shot" ? productShotForm.numberOfImages : 5} images for your ${creationType === "product_shot" ? "product shot" : "ad campaign"}...
+                        </p>
+                      </div>}
+                      {/* <div>
                         <h2 className="text-xl font-semibold text-slate-900 mb-2">
                           {isGenerating ? "Generating Images..." : "Generated Images"}
                         </h2>
@@ -1294,8 +1302,8 @@ const Generate = () => {
                             : `Your ${creationType === "product_shot" ? "product shots" : "ad creatives"} are ready!`
                           }
                         </p>
-                      </div>
-                      {result && result.success && (
+                      </div> */}
+                      {/* {result && result.success && (
                         <Button
                           onClick={downloadAllImages}
                           variant="outline"
@@ -1304,12 +1312,12 @@ const Generate = () => {
                           <Download className="h-4 w-4" />
                           Download All
                         </Button>
-                      )}
+                      )} */}
                     </div>
                   </div>
 
                   {/* Image Grid with subtle background */}
-                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 shadow-sm">
+                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/60 shadow-sm max-h-[80vh] overflow-y-auto">
                     <div className={`grid gap-6 ${getGridLayout(creationType === "product_shot" ? productShotForm.numberOfImages : 5)}`}>
                       {isGenerating ? (
                         renderLoadingPlaceholders()

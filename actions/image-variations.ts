@@ -270,7 +270,7 @@ async function generateSingleVariation(
     const originalImageBlob = new Blob([originalBuffer], { type: 'image/png' });
     const sourceImageBlob = new Blob([sourceBuffer], { type: 'image/png' });
     
-    formData.append('image', originalImageBlob, 'original.png');
+    // formData.append('image', originalImageBlob, 'original.png');
     formData.append('image', sourceImageBlob, 'source.png');
     
     const response = await fetch('https://api.openai.com/v1/images/edits', {
@@ -405,7 +405,7 @@ async function generateUpscaledImage(
     formData.append('size', size);
     
     // Add quality parameter to match generateProductShots
-    let imageQuality = process.env.NODE_ENV === "production" ? "medium" : "low";
+    let imageQuality = "high";
     formData.append('quality', imageQuality);
     
     // Add both images - original product image and the generated image to upscale
@@ -413,7 +413,6 @@ async function generateUpscaledImage(
     const sourceImageBlob = new Blob([sourceBuffer], { type: 'image/png' });
     
     formData.append('image', originalImageBlob, 'original.png');
-    formData.append('image', sourceImageBlob, 'source.png');
     
     const response = await fetch('https://api.openai.com/v1/images/edits', {
       method: 'POST',
