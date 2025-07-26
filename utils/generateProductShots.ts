@@ -167,6 +167,7 @@ async function generateSingleProductShot(
     if (aspectRatio === '1024x1536') size = '1024x1536';
     formData.append('size', size);
     
+    // let imageQuality = 'medium';
     let imageQuality = process.env.NODE_ENV === "production" ? "medium" : "low";
     formData.append('quality', imageQuality);
     

@@ -35,6 +35,8 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { AIAssistantModal } from "@/components/ai-assistant-modal";
+import { PromptAssistantModal } from "@/components/prompt-assistant-modal";
+import { enhancePrompt } from "@/actions/prompt-assistance";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -146,7 +148,9 @@ const Generate = () => {
   const [activeTab, setActiveTab] = useState<string>("form");
   const [showAIModal, setShowAIModal] = useState(false);
   const [showSceneModal, setShowSceneModal] = useState(false);
+  const [showPromptAssistant, setShowPromptAssistant] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
 
   const { data: session } = useSession();
 
@@ -207,6 +211,28 @@ const Generate = () => {
 
   const handleNumberOfImagesChange = (value: number[]) => {
     setProductShotForm((prev) => ({ ...prev, numberOfImages: value[0] }));
+  };
+
+  const handlePromptGenerated = (prompt: string) => {
+    setProductShotForm((prev) => ({ ...prev, prompt }));
+  };
+
+  const handleEnhancePrompt = async () => {
+    if (!productShotForm.prompt.trim() || productShotForm.prompt.trim().length < 10) {
+      return;
+    }
+
+    setIsEnhancing(true);
+    try {
+      const result = await enhancePrompt(productShotForm.prompt);
+      if (result.success && result.enhancedPrompt) {
+        setProductShotForm((prev) => ({ ...prev, prompt: result.enhancedPrompt! }));
+      }
+    } catch (error) {
+      console.error("Error enhancing prompt:", error);
+    } finally {
+      setIsEnhancing(false);
+    }
   };
 
   // Helper function to get grid layout based on number of images
@@ -667,7 +693,7 @@ const Generate = () => {
                         {ratio.value === '1536x1024' ? '3:2' : ''}
                         {ratio.value === '1024x1536' ? '2:3' : ''}
                       </span>
-                      <span className="text-xs text-slate-500 mt-1">{ratio.dimensions}</span>
+                      {/* <span className="text-xs text-slate-500 mt-1">{ratio.dimensions}</span> */}
                     </button>
                   ))}
                 </div>
@@ -723,7 +749,7 @@ const Generate = () => {
                   type="button"
                   variant="outline"
                   onClick={() => setShowSceneModal(true)}
-                  className="w-full h-20 text-left justify-start p-3"
+                  className="w-full h-20 text-left justify-start p-3 group"
                 >
                   {productShotForm.scene ? (
                     <div className="flex items-center gap-3">
@@ -740,7 +766,7 @@ const Generate = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center text-slate-500">
+                    <div className="flex items-center justify-center text-slate-500 group-hover:text-slate-200">
                       <Camera className="w-4 h-4 mr-2" />
                       <span>Select a scene</span>
                     </div>
@@ -882,13 +908,49 @@ const Generate = () => {
                         
                         <div className="space-y-3">
                           {creationType === "product_shot" ? (
-                            <Textarea
-                              placeholder="Describe your product shot... (e.g., 'luxury skincare product on marble surface with soft lighting')"
-                              className="min-h-[100px] border-slate-200 focus:border-violet-300 focus:ring-violet-200 resize-none text-sm"
-                              value={productShotForm.prompt}
-                              name="prompt"
-                              onChange={handleProductShotChange}
-                            />
+                            <div className="space-y-2">
+                              <div className="relative">
+                                <Textarea
+                                  placeholder="Describe your product shot... (e.g., 'luxury skincare product on marble surface with soft lighting')"
+                                  className="min-h-[100px] border-slate-200 focus:border-violet-300 focus:ring-violet-200 resize-none text-sm pr-20"
+                                  value={productShotForm.prompt}
+                                  name="prompt"
+                                  onChange={handleProductShotChange}
+                                />
+                                {productShotForm.prompt.trim().length >= 10 && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleEnhancePrompt}
+                                    disabled={isEnhancing}
+                                    className="absolute bottom-2 right-2 h-7 px-2 text-xs"
+                                  >
+                                    {isEnhancing ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Sparkles className="h-3 w-3 mr-1" />
+                                        Enhance
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setShowPromptAssistant(true)}
+                                  className="h-7 px-3 text-xs text-violet-600 border-violet-200 hover:bg-violet-50 hover:text-violet-600"
+                                >
+                                  <Wand2 className="h-3 w-3 mr-1" />
+                                  Prompt Assistant
+                                </Button>
+                                <span className="text-xs text-slate-500">
+                                  Need help? Use our assistant to craft the perfect prompt
+                                </span>
+                              </div>
+                            </div>
                           ) : (
                             <Textarea
                               placeholder="Type a prompt..."
@@ -1151,6 +1213,13 @@ const Generate = () => {
         productName={form.productName}
         productCategory={form.productCategory}
         onDataGenerated={handleAIDataGenerated}
+      />
+
+      {/* Prompt Assistant Modal */}
+      <PromptAssistantModal
+        open={showPromptAssistant}
+        onOpenChange={setShowPromptAssistant}
+        onPromptGenerated={handlePromptGenerated}
       />
     </div>
   );
