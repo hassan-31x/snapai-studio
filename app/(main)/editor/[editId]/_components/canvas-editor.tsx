@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Canvas } from 'fabric';
 import { useCanvasHook } from '../page';
+import TopBar from './topbar';
 
 type CanvasData = {
   width?: number;
@@ -41,8 +42,11 @@ const CanvasEditor = ({ data }: { data?: CanvasData }) => {
   }, [canvasRef, data]);
 
   return (
-    <div className='w-full h-full bg-gray-300 flex items-center justify-center'>
-      <canvas ref={canvasRef}></canvas>
+    <div className='w-full h-full bg-gray-300 flex flex-col items-center'>
+      <TopBar />
+      <div className='w-full h-full flex items-center justify-center'>
+        <canvas ref={canvasRef}></canvas>
+      </div>
     </div>
   )
 }

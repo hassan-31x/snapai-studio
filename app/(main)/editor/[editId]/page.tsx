@@ -8,13 +8,14 @@ import SidebarItem from './_components/sidebar-item';
 import CanvasEditor from './_components/canvas-editor';
 import BackgroundSetting from './_components/background-setting';
 import { CanvasContext } from '@/context/canvas-provider';
+import Shapes from './_components/shapes';
 
 const sideItems = [
   {
     name: 'Elements',
     description: 'Add elements to your design',
     icon: Component,
-    component: <></>,
+    component: <Shapes />,
   },
   {
     name: 'Images',
