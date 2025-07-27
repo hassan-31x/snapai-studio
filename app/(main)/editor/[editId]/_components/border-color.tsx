@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import ColorPicker from './color-picker'
 import { useCanvasHook } from '../page'
 
-const FillColor = () => {
+const BorderColor = () => {
   const [color, setColor] = useState('#000000')
   const { canvasEditor } = useCanvasHook()
 
@@ -10,7 +10,7 @@ const FillColor = () => {
     setColor(color)
     if (canvasEditor) {
       canvasEditor.getActiveObject().set({
-        fill: color
+        stroke: color
       })
       canvasEditor.renderAll()
     }
@@ -26,4 +26,4 @@ const FillColor = () => {
   )
 }
 
-export default FillColor
+export default BorderColor

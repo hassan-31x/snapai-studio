@@ -1,7 +1,7 @@
 import React from 'react'
 import { ChromePicker, CirclePicker } from 'react-color'
 
-const ColorPicket = ({ value, onChange }: { value: string, onChange: (color: string) => void }) => {
+const ColorPicker = ({ value, onChange }: { value: string, onChange: (color: string) => void }) => {
   return (
     <div className='space-y-4'>
       <ChromePicker 
@@ -18,4 +18,4 @@ const ColorPicket = ({ value, onChange }: { value: string, onChange: (color: str
   )
 }
 
-export default ColorPicket
+export default ColorPicker

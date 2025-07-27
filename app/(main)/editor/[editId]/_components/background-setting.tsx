@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import ColorPicket from './color-picker'
+import ColorPicker from './color-picker'
 import { useCanvasHook } from '../page';
 
 
@@ -19,7 +19,7 @@ const BackgroundSetting = () => {
   }
   return (
     <div className=''>
-      <ColorPicket value={color} onChange={(e) => onColorChange(e)} />
+      <ColorPicker value={color} onChange={(e) => onColorChange(e)} />
     </div>
   )
 }
