@@ -8,6 +8,14 @@ body {
   height: 100%;
 }
 
+.chrome-picker {
+  width: auto !important;
+  box-shadow: none !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden !important;
+}
+
+
 @layer base {
   :root {
     --background: 0 0% 100%;

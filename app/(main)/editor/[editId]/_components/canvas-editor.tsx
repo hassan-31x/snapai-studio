@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Canvas } from 'fabric';
+import { useCanvasHook } from '../page';
 
 type CanvasData = {
   width?: number;
@@ -9,6 +10,7 @@ type CanvasData = {
 const CanvasEditor = ({ data }: { data?: CanvasData }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvas, setCanvas] = useState<Canvas | null>(null);
+  const { canvasEditor, setCanvasEditor } = useCanvasHook();
 
   const { width=1280, height=720 } = data || {};
 
@@ -30,6 +32,7 @@ const CanvasEditor = ({ data }: { data?: CanvasData }) => {
 
       initCanvas.renderAll();
       setCanvas(initCanvas);
+      setCanvasEditor(initCanvas);
 
       return () => {
         initCanvas.destroy();

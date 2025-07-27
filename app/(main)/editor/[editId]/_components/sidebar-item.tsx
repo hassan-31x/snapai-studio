@@ -4,6 +4,7 @@ type Props = {
     selectedItem: {
         name: string;
         description: string;
+        component?: React.ReactNode;
     } | undefined;
 }
 
@@ -12,6 +13,7 @@ const SidebarItem = ({ selectedItem }: Props) => {
     <div className='w-64 h-full bg-gray-200'>
       <h2 className='text-lg font-bold'>{selectedItem?.name}</h2>
       <p className='text-sm text-gray-500'>{selectedItem?.description}</p>
+      {selectedItem?.component}
     </div>
   )
 }
