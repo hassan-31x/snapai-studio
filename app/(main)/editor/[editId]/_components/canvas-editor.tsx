@@ -41,6 +41,25 @@ const CanvasEditor = ({ data }: { data?: CanvasData }) => {
     }
   }, [canvasRef, data]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (!canvasEditor) return;
+        const activeObject = canvasEditor?.getActiveObject()
+
+        if (activeObject) {
+          canvasEditor?.remove(activeObject)
+          canvasEditor?.renderAll()
+        }
+      }
+
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [canvasEditor])
+
   return (
     <div className='w-full h-full bg-gray-300 flex flex-col items-center'>
       <TopBar />

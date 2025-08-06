@@ -9,6 +9,7 @@ import CanvasEditor from './_components/canvas-editor';
 import BackgroundSetting from './_components/background-setting';
 import { CanvasContext } from '@/context/canvas-provider';
 import Shapes from './_components/shapes';
+import ImageUpload from './_components/image-upload';
 
 const sideItems = [
   {
@@ -21,7 +22,7 @@ const sideItems = [
     name: 'Images',
     description: 'Add images to your design',
     icon: Image,
-    component: <></>,
+    component: <ImageUpload />,
   },
   {
     name: 'Text',
