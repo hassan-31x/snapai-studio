@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Stillframe",
-    short_name: "Stillframe",
+    name: "SnapAI Studio",
+    short_name: "SnapAI Studio",
     description: "Your independent creative studio",
     start_url: "/dashboard",
     display: "standalone",

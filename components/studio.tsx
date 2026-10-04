@@ -225,7 +225,7 @@ export default function Studio({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `stillframe-${image.id || image.type || Date.now()}.png`;
+      a.download = `snapai-studio-${image.id || image.type || Date.now()}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {

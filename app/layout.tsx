@@ -3,26 +3,43 @@ import { GeistSans } from "geist/font/sans";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import { brand } from "@/lib/brand";
+import { siteTitle, socialImage } from "@/lib/seo";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
-    default: "Stillframe · Your independent creative studio",
-    template: "%s · Stillframe",
+    default: siteTitle,
+    template: "%s · SnapAI Studio",
   },
   description: brand.description,
   metadataBase: new URL(brand.url),
+  applicationName: brand.name,
+  category: "design",
+  robots: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+    "max-snippet": -1,
+    "max-video-preview": -1,
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
+  },
   openGraph: {
-    title: "Stillframe · Your product. A whole new perspective.",
+    title: siteTitle,
     description: brand.description,
     siteName: brand.name,
     type: "website",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
+    locale: "en_US",
+    images: [socialImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: brand.name,
+    title: siteTitle,
     description: brand.description,
-    images: ["/opengraph-image"],
+    images: [socialImage],
   },
 };
 export default function RootLayout({

@@ -1,4 +1,4 @@
-# Stillframe
+# SnapAI Studio
 
 ## Register
 

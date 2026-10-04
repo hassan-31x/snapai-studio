@@ -16,7 +16,7 @@ export default function Icon() {
         fontWeight: 700,
       }}
     >
-      F
+      S
     </div>,
     size,
   );

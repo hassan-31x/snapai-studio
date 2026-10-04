@@ -1,4 +1,4 @@
-# Deploy Stillframe
+# Deploy SnapAI Studio
 
 1. Use Node 24 LTS. Install from the committed lockfile with `npm ci`.
 2. Create a MongoDB Atlas database (or replica set), a Cloudinary account, an OpenRouter key, and a Resend verified sending domain. Set the variables listed in `.env.example` as environment secrets.
@@ -9,6 +9,7 @@
 7. Restrict the OpenRouter key's spending and monitor usage. New verified accounts receive 10 credits. Product shots and variations cost one per image, campaigns cost five. There is no renewal or checkout. Existing users retain their existing credit balance.
 8. Schedule an authenticated GET to `/api/maintenance` every 15 minutes, with `Authorization: Bearer YOUR_CRON_SECRET`, using your host's scheduler. It restores expired credit reservations, marks stale generations failed, and removes old rate-limit counters. If no scheduler is configured, user requests also recover that user's expired reservations.
 9. Run the live smoke checks below before accepting public traffic.
+10. Complete the [SEO launch checklist](seo/ACTION-PLAN.md): confirm the final canonical origin, connect webmaster tools, submit the sitemap, and test the sharing card on the public domain.
 
 ## Live smoke checks
 

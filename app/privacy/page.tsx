@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
-export const metadata = { title: "Privacy policy" };
+import { publicPageMetadata } from "@/lib/seo";
+export const metadata = publicPageMetadata(
+  "Privacy policy",
+  "Learn how SnapAI Studio handles account information, uploaded product photos, AI generation, storage, cookies, and account deletion.",
+  "/privacy",
+);
 export default function Page() {
   return (
     <main id="main-content" className="section-wrap max-w-3xl py-12">
@@ -12,9 +17,9 @@ export default function Page() {
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-medium">Your account</h2>
         <p className="text-sm leading-6 text-muted-foreground">
-          Stillframe stores your name, email address, hashed password, account
-          security settings, credit balance, and creative projects. Passwords
-          are never sent to the image service.
+          SnapAI Studio stores your name, email address, hashed password,
+          account security settings, credit balance, and creative projects.
+          Passwords are never sent to the image service.
         </p>
       </section>
       <section className="mb-8">

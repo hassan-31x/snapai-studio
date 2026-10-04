@@ -10,7 +10,7 @@ async function send(email: string, subject: string, html: string) {
   const { error } = await new Resend(process.env.RESEND_API_KEY).emails.send({
     from: process.env.FROM_EMAIL,
     to: email,
-    subject: `Stillframe: ${subject}`,
+    subject: `SnapAI Studio: ${subject}`,
     html,
   });
   if (error) throw new Error("We could not send your email. Please try again.");
@@ -19,7 +19,7 @@ export const sendVerificationEmail = (email: string, token: string) =>
   send(
     email,
     "Confirm your email",
-    `<p>Welcome to Stillframe.</p><p><a href="${brand.url}/auth/verify-email?token=${encodeURIComponent(token)}">Verify your email</a> to open your studio. This link expires in 15 minutes.</p>`,
+    `<p>Welcome to SnapAI Studio.</p><p><a href="${brand.url}/auth/verify-email?token=${encodeURIComponent(token)}">Verify your email</a> to open your studio. This link expires in 15 minutes.</p>`,
   );
 export const sendResetPasswordEmail = (email: string, token: string) =>
   send(

@@ -1,10 +1,11 @@
 export const brand = {
-  name: "Stillframe",
+  name: "SnapAI Studio",
   description:
-    "Turn a product photo into considered studio shots and campaign creatives. One workspace, from first idea to final export.",
-  url:
+    "Create AI product photography and ad creatives from your own photos. Generate studio shots, campaign images, and variations with SnapAI Studio.",
+  url: new URL(
     process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.BASE_URL ||
-    "http://localhost:3000",
+      process.env.BASE_URL ||
+      "http://localhost:3000",
+  ).origin,
 };
 export const FREE_CREDITS = 10;

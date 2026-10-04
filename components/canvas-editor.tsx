@@ -191,7 +191,7 @@ export default function CanvasEditor({
       c.requestRenderAll();
       const a = window.document.createElement("a");
       a.href = c.toDataURL({ format: "png", multiplier: 1 });
-      a.download = "stillframe-design.png";
+      a.download = "snapai-studio-design.png";
       a.click();
     } catch {
       toast.error("Could not export this design. Please try again.");

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
-export const metadata = { title: "Terms of use" };
+import { publicPageMetadata } from "@/lib/seo";
+export const metadata = publicPageMetadata(
+  "Terms of use",
+  "Read the SnapAI Studio terms for AI product photography, content rights, free image credits, account security, and service availability.",
+  "/terms",
+);
 export default function Page() {
   return (
     <main id="main-content" className="section-wrap max-w-3xl py-12">
@@ -12,8 +17,8 @@ export default function Page() {
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-medium">Using the studio</h2>
         <p className="text-sm leading-6 text-muted-foreground">
-          Use Stillframe only with content you own or have permission to use. Do
-          not upload unlawful content, personal documents, or material that
+          Use SnapAI Studio only with content you own or have permission to use.
+          Do not upload unlawful content, personal documents, or material that
           infringes another person’s rights.
         </p>
       </section>
@@ -21,7 +26,7 @@ export default function Page() {
         <h2 className="mb-3 text-xl font-medium">AI results</h2>
         <p className="text-sm leading-6 text-muted-foreground">
           Generated images can be inaccurate, including product labels and
-          details. Review outputs before publishing. Stillframe does not
+          details. Review outputs before publishing. SnapAI Studio does not
           guarantee sales, factual accuracy, exclusivity, or suitability for any
           commercial purpose. Model provider terms also apply.
         </p>

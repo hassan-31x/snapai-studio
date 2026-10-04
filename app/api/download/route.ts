@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     return new Response(response.body, {
       headers: {
         "Content-Type": response.headers.get("content-type") || "image/png",
-        "Content-Disposition": "attachment; filename=stillframe-image.png",
+        "Content-Disposition": "attachment; filename=snapai-studio-image.png",
         "Cache-Control": "private, no-store",
       },
     });

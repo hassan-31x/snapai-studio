@@ -9,9 +9,21 @@ import Gallery from "@/components/landing/gallery";
 import Tagline from "@/components/landing/tagline";
 import FAQ from "@/components/landing/faq";
 import CTA from "@/components/landing/cta";
+import { brand } from "@/lib/brand";
+import { publicPageMetadata, siteTitle, websiteSchema } from "@/lib/seo";
+export const metadata = {
+  ...publicPageMetadata(siteTitle, brand.description, "/"),
+  title: { absolute: siteTitle },
+};
 export default function Landing() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteSchema).replace(/</g, "\\u003c"),
+        }}
+      />
       <Navigation />
       <main id="main-content">
         <Hero />
@@ -36,7 +48,7 @@ export default function Landing() {
           <Link href="/terms">Terms</Link>
         </div>
         <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Stillframe
+          © {new Date().getFullYear()} SnapAI Studio
         </p>
       </footer>
     </>
