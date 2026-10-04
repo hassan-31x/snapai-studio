@@ -1,28 +1,30 @@
-'use client';
-
 import Link from "next/link";
-import Image from "next/image";
-import { TwitterIcon, Github } from "lucide-react";
-
-const Navigation = () => {
+import { BrandLogo } from "@/components/brand-logo";
+import { Button } from "@/components/ui/button";
+export default function Navigation() {
   return (
-    <nav className="absolute top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex items-center">
-          <Image src="/logo.png" alt="Snap AI Logo" width={36} height={36} className="rounded-full" />
-          <span className="text-lg font-semibold tracking-tight select-none">Snap AI</span>
+    <header className="section-wrap">
+      <nav
+        aria-label="Main navigation"
+        className="flex h-20 items-center justify-between gap-4"
+      >
+        <BrandLogo />
+        <div className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
+          <Link href="#features">Features</Link>
+          <Link href="#how-it-works">How it works</Link>
+          <Link href="#faq">Questions</Link>
         </div>
-        <div className="flex items-center gap-3">
-          <Link target="_blank" href='https://x.com/hassan_dev31' className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <TwitterIcon className="w-5 h-5 text-gray-700" />
+        <div className="flex items-center gap-4">
+          <Link className="hidden text-sm sm:inline" href="/auth/login">
+            Sign in
           </Link>
-          <Link target="_blank" href='https://github.com/hassan-31x' className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <Github className="w-5 h-5 text-gray-700" />
-          </Link>
+          <Button asChild>
+            <Link href="/auth/register">
+              Start creating <span aria-hidden="true">↗</span>
+            </Link>
+          </Button>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
-};
-
-export default Navigation;
+}

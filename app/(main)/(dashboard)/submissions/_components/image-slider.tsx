@@ -1,12 +1,11 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react'
-import { imageTypes } from '@/lib/image-types';
+import React, { useState } from "react";
+import { imageTypes } from "@/lib/image-types";
 
-type Props = {}
+type Props = Record<string, never>;
 
 const ImageSlider = ({ submission }: { submission: any }) => {
-  
   const images = [
     submission.originalImageUrl,
     ...imageTypes.map((img) => submission[img.key]).filter(Boolean),
@@ -27,7 +26,9 @@ const ImageSlider = ({ submission }: { submission: any }) => {
             <button
               key={idx}
               className={`w-2 h-2 rounded-full border border-black ${active === idx ? "bg-black" : "bg-white/80"}`}
-              style={{ boxShadow: active === idx ? '0 0 0 2px #fff' : undefined }}
+              style={{
+                boxShadow: active === idx ? "0 0 0 2px #fff" : undefined,
+              }}
               onClick={(e) => {
                 e.preventDefault();
                 setActive(idx);
@@ -39,6 +40,6 @@ const ImageSlider = ({ submission }: { submission: any }) => {
       )}
     </div>
   );
-}
+};
 
-export default ImageSlider
+export default ImageSlider;

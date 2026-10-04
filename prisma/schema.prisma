@@ -38,10 +38,13 @@ model User {
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
 
-  tokens                Int                    @default(100)
+  sessionVersion        Int                    @default(0)
+  tokens                Int                    @default(10)
   generatedImages       Int                    @default(0)
   submissions          Submission[]           @relation("UserSubmissions")
   productImages        ProductImage[]         @relation("UserProductImages")
+  reservations         CreditReservation[]    @relation("UserReservations")
+  designs              Design[]               @relation("UserDesigns")
   generations          Generation[]           @relation("UserGenerations")
 }
 
@@ -197,6 +200,7 @@ model Generation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId, createdAt])
   @@map("generations")
 }
 
@@ -221,5 +225,33 @@ model ProductImage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId, createdAt])
   @@map("product_images")
+}
+
+model RateLimit {
+  id String @id @map("_id")
+  count Int @default(0)
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+model Design {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user User @relation("UserDesigns", fields: [userId], references: [id])
+  imageUrl String
+  document String
+  updatedAt DateTime @updatedAt
+  @@unique([userId, imageUrl])
+}
+
+model CreditReservation {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user User @relation("UserReservations", fields: [userId], references: [id])
+  amount Int
+  settled Boolean @default(false)
+  expiresAt DateTime
+  @@index([userId, settled, expiresAt])
 }

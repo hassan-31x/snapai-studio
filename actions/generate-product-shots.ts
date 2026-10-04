@@ -1,171 +1,146 @@
-"use server"
-
+"use server";
 import { db } from "@/lib/db";
-import { generateProductShots, ProductShotGenerationResponse } from "@/utils/generateProductShots";
-import { getUserById } from "@/utils/user";
-import { createGeneration, updateGenerationStatus } from "@/utils/generations";
-import { GenerationType, GenerationStatus } from "@prisma/client";
-
-export interface ProductShotFormData {
-  userId: string;
-  prompt: string;
-  aspectRatio: string;
-  scene: string;
-  numberOfImages: number;
-  productImage: File;
-  similarImages?: File[];
-  generationId?: string; // For adding more images to existing generation
-}
-
-// Server action to handle product shot generation
+import { generateProductShots } from "@/utils/generateProductShots";
+import {
+  requireUser,
+  reserveCredits,
+  settleCredits,
+  refundCredits,
+  rateLimit,
+  actionError,
+} from "@/lib/security";
+import {
+  promptSchema,
+  imageCountSchema,
+  aspectRatioSchema,
+  objectIdSchema,
+  validateImage,
+} from "@/lib/validation";
+import { revalidatePath } from "next/cache";
 export async function generateProductShotsAction(formData: FormData) {
+  let generationId: string | undefined;
+  let reserved: string | undefined;
+  let userId: string | undefined;
   try {
-    const userId = formData.get("userId") as string;
-    const user = await getUserById(userId);
-
-    if (!user) {
-      return { error: "User not found" };
-    }
-
-    console.log("User:", user);
-
-    if (user.generatedImages >= 10) { // Allow more for product shots
-      return { error: "You have reached the maximum number of generated images" };
-    }
-
-    // Extract form data
-    const prompt = formData.get("prompt") as string || "";
-    const aspectRatio = formData.get("aspectRatio") as string || "1024x1024";
-    const scene = formData.get("scene") as string || "";
-    const numberOfImages = parseInt(formData.get("numberOfImages") as string) || 1;
-    const productImage = formData.get("productImage") as File;
-    const existingGenerationId = formData.get("generationId") as string;
-
-    // Extract similar images if any
+    const user = await requireUser();
+    userId = user.id;
+    await rateLimit(`generate:${user.id}`, 3);
+    const prompt = promptSchema.parse(formData.get("prompt"));
+    const numberOfImages = imageCountSchema.parse(
+      formData.get("numberOfImages") || 1,
+    );
+    const aspectRatio = aspectRatioSchema.parse(
+      formData.get("aspectRatio") || "1024x1024",
+    );
+    const scene = String(formData.get("scene") || "studio").slice(0, 100);
+    const productImage = formData.get("productImage");
+    validateImage(productImage);
     const similarImages: File[] = [];
-    let i = 0;
-    while (formData.get(`similarImage_${i}`)) {
-      similarImages.push(formData.get(`similarImage_${i}`) as File);
-      i++;
+    for (let i = 0; i < 3; i++) {
+      const file = formData.get(`similarImage_${i}`);
+      if (file) {
+        validateImage(file);
+        similarImages.push(file);
+      }
     }
-
-    console.log("Product shot form data received:", {
-      prompt,
-      aspectRatio,
-      scene,
-      numberOfImages,
-      hasProductImage: !!productImage,
-      similarImagesCount: similarImages.length,
-      existingGenerationId
-    });
-
-    if (!productImage) {
-      return { error: "Product image is required" };
+    const existingId = formData.get("generationId");
+    if (existingId) {
+      const id = objectIdSchema.parse(existingId);
+      const existing = await db.generation.findFirst({
+        where: { id, userId: user.id, type: "PRODUCT_SHOT" },
+      });
+      if (!existing) throw new Error("Project not found");
+      if (existing.status === "IN_PROGRESS")
+        throw new Error("This project is already generating. Please wait.");
+      generationId = existing.id;
     }
-
-    if (!prompt.trim()) {
-      return { error: "Prompt is required" };
-    }
-
-    // Create or get existing generation
-    let generationId = existingGenerationId;
+    reserved = await reserveCredits(user.id, numberOfImages);
     if (!generationId) {
-      const generation = await createGeneration({
-        userId,
-        type: GenerationType.PRODUCT_SHOT,
-        prompt,
-        aspectRatio,
-        scene,
-        numberOfImages,
+      const generation = await db.generation.create({
+        data: {
+          userId: user.id,
+          type: "PRODUCT_SHOT",
+          prompt,
+          scene,
+          aspectRatio,
+          numberOfImages,
+          status: "IN_PROGRESS",
+        },
       });
       generationId = generation.id;
+    } else {
+      const claim = await db.generation.updateMany({
+        where: {
+          id: generationId,
+          userId: user.id,
+          status: { not: "IN_PROGRESS" },
+        },
+        data: { status: "IN_PROGRESS" },
+      });
+      if (!claim.count) {
+        generationId = undefined;
+        throw new Error("This project is already generating. Please wait.");
+      }
     }
-
-    // Update status to in progress
-    await updateGenerationStatus(generationId, GenerationStatus.IN_PROGRESS);
-
-    // Generate product shots
     const response = await generateProductShots({
       prompt,
-      aspectRatio,
       scene,
+      aspectRatio,
       numberOfImages,
       productImage,
-      similarImages
+      similarImages,
     });
-
-    // Save product images in database linked to generation
-    const savedImages = await Promise.all(
-      response.generatedImages.map(async (image) => {
-        const savedImage = await db.productImage.create({
-          data: {
-            userId: user.id,
-            generationId,
-            prompt: image.prompt,
-            aspectRatio: image.aspectRatio,
-            scene: image.scene,
-            imageUrl: image.imageUrl,
-            imagePublicId: image.publicId,
-            type: "Original",
-            originalImageUrl: response.originalImage?.url || "",
-            originalImagePublicId: response.originalImage?.publicId || "",
-          }
-        });
-        
-        return {
-          id: savedImage.id,
-          imageUrl: savedImage.imageUrl,
-          prompt: savedImage.prompt,
-          aspectRatio: savedImage.aspectRatio,
-          scene: savedImage.scene,
-          publicId: savedImage.imagePublicId
-        };
-      })
-    );
-
-    // Update generation with original image info if not already set
-    if (!existingGenerationId && response.originalImage) {
-      await db.generation.update({
-        where: { id: generationId },
-        data: {
-          originalImageUrl: response.originalImage.url,
-          originalImagePublicId: response.originalImage.publicId,
-        }
+    const id = generationId;
+    const images = await db.$transaction(async (tx) => {
+      await settleCredits(tx, reserved!);
+      const saved = [];
+      for (const image of response.generatedImages)
+        saved.push(
+          await tx.productImage.create({
+            data: {
+              userId: user.id,
+              generationId: id,
+              prompt,
+              aspectRatio,
+              scene,
+              imageUrl: image.imageUrl,
+              imagePublicId: image.publicId,
+              type: "Original",
+              originalImageUrl: response.originalImage?.url,
+              originalImagePublicId: response.originalImage?.publicId,
+            },
+          }),
+        );
+      await tx.user.update({
+        where: { id: user.id },
+        data: { generatedImages: { increment: saved.length } },
       });
-    }
-
-    // Update user's generated images count
-    await db.user.update({
-      where: { id: user.id },
-      data: { generatedImages: { increment: numberOfImages } }
+      await tx.generation.update({
+        where: { id },
+        data: {
+          status: "COMPLETED",
+          originalImageUrl: response.originalImage?.url,
+          originalImagePublicId: response.originalImage?.publicId,
+        },
+      });
+      return saved;
     });
-
-    // Update status to completed
-    await updateGenerationStatus(generationId, GenerationStatus.COMPLETED);
-
+    reserved = undefined;
+    revalidatePath("/dashboard");
+    revalidatePath("/submissions");
     return {
       success: true,
       generationId,
-      images: savedImages,
-      originalImage: response.originalImage
+      images,
+      originalImage: response.originalImage,
     };
-
   } catch (error) {
-    console.error("Error in generateProductShotsAction:", error);
-    
-    // If we have a generationId, mark it as failed
-    const generationId = formData.get("generationId") as string;
-    if (generationId) {
-      try {
-        await updateGenerationStatus(generationId, GenerationStatus.FAILED);
-      } catch (updateError) {
-        console.error("Error updating generation status to failed:", updateError);
-      }
-    }
-    
-    return {
-      success: false,
-      error: "Failed to generate product shots. Please try again."
-    };
+    if (reserved && userId) await refundCredits(userId, reserved);
+    if (generationId)
+      await db.generation.update({
+        where: { id: generationId },
+        data: { status: "FAILED" },
+      });
+    return { success: false, error: actionError(error) };
   }
 }

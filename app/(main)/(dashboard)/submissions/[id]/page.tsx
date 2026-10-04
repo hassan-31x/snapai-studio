@@ -1,5 +1,13 @@
+import { requireUser } from "@/lib/security";
+import { objectIdSchema } from "@/lib/validation";
 import { notFound } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Image as ImageIcon } from "lucide-react";
 import SingleDownload from "../_components/single-download";
@@ -7,28 +15,27 @@ import MultipleDownload from "../_components/multiple-download";
 import { imageTypes } from "@/lib/image-types";
 import { db } from "@/lib/db";
 
-
 export default async function SubmissionPage({ params }: any) {
-  const id = await params.id;
-  const submission = await db.submission.findUnique({
-      where: { id },
-      include: {
-        user: true,
-      },
-    });
+  const { id } = await params;
+  if (!objectIdSchema.safeParse(id).success) return notFound();
+  const user = await requireUser();
+  const submission = await db.submission.findFirst({
+    where: { id, userId: user.id },
+  });
 
   if (!submission) return notFound();
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Submission Details</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Campaign details</h1>
         <p className="text-muted-foreground mt-1">
-          Here are your generated AI creatives and details for <span className="font-semibold">{submission.productName}</span>
+          Here are your generated AI creatives and details for{" "}
+          <span className="font-semibold">{submission.productName}</span>
         </p>
       </div>
       <div className="space-y-8">
-        <Card className="border-green-100 bg-gradient-to-br from-green-50 to-emerald-50">
+        <Card className="border-border bg-secondary">
           <CardHeader>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-6 w-6 text-green-600" />
@@ -37,16 +44,28 @@ export default async function SubmissionPage({ params }: any) {
             <CardDescription>
               <div className="flex flex-col gap-2">
                 <div>
-                  Product: <span className="font-semibold">{submission.productName}</span>
+                  Product:{" "}
+                  <span className="font-semibold">
+                    {submission.productName}
+                  </span>
                 </div>
                 <div>
-                  Product Category: <span className="font-semibold">{submission.productCategory}</span>
+                  Product Category:{" "}
+                  <span className="font-semibold">
+                    {submission.productCategory}
+                  </span>
                 </div>
                 <div>
-                  Product Tagline: <span className="font-semibold">{submission.productTagline}</span>
+                  Product Tagline:{" "}
+                  <span className="font-semibold">
+                    {submission.productTagline}
+                  </span>
                 </div>
                 <div>
-                  Product Description: <span className="font-semibold">{submission.productDescription}</span>
+                  Product Description:{" "}
+                  <span className="font-semibold">
+                    {submission.productDescription}
+                  </span>
                 </div>
               </div>
             </CardDescription>
@@ -62,20 +81,25 @@ export default async function SubmissionPage({ params }: any) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {imageTypes.map((img, idx) => {
-              const url = submission[img.key as keyof typeof submission] as string;
+              const url = submission[
+                img.key as keyof typeof submission
+              ] as string;
               if (!url) return null;
               return (
-                <Card key={idx} className="overflow-hidden group hover:shadow-lg transition-all border-muted/60">
+                <Card
+                  key={idx}
+                  className="overflow-hidden group hover:shadow-lg transition-all border-muted/60"
+                >
                   <div className="aspect-[4/3] relative overflow-hidden bg-slate-50">
-                    <img 
-                      src={url} 
-                      alt={img.label} 
+                    <img
+                      src={url}
+                      alt={img.label}
                       className="w-full h-full object-contain"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center">
                       <SingleDownload
                         url={url}
-                        filename={`${img.label.replace(/\s+/g, '_').toLowerCase()}.png`}
+                        filename={`${img.label.replace(/\s+/g, "_").toLowerCase()}.png`}
                         img={img}
                       />
                     </div>
@@ -88,11 +112,13 @@ export default async function SubmissionPage({ params }: any) {
                         </div>
                         <div>
                           <h4 className="font-medium text-sm">{img.label}</h4>
-                          <p className="text-xs text-muted-foreground">{img.dimensions}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {img.dimensions}
+                          </p>
                         </div>
                       </div>
                       <Badge variant="outline" className="bg-slate-50 text-xs">
-                        {img.type.replace('_', ' ')}
+                        {img.type.replace("_", " ")}
                       </Badge>
                     </div>
                   </CardContent>

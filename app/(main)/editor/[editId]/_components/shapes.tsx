@@ -1,28 +1,26 @@
-import React from 'react'
-import { Square, Circle as CircleIcon, Triangle, Minus } from 'lucide-react'
-import { Circle, Line, Rect } from 'fabric'
-import { useCanvasHook } from '../page';
+import React from "react";
+import { Square, Circle as CircleIcon, Triangle, Minus } from "lucide-react";
+import { Circle, Line, Rect } from "fabric";
+import { useCanvasHook } from "@/context/canvas-provider";
 
 const shapeList = [
   {
-    name: 'Rectangle',
+    name: "Rectangle",
     icon: <Square />,
   },
   {
-    name: 'Circle',
+    name: "Circle",
     icon: <CircleIcon />,
   },
   {
-    name: 'Triangle',
+    name: "Triangle",
     icon: <Triangle />,
   },
   {
-    name: 'Line',
+    name: "Line",
     icon: <Minus />,
   },
-]
-
-
+];
 
 const Shapes = () => {
   const { canvasEditor } = useCanvasHook();
@@ -34,41 +32,45 @@ const Shapes = () => {
       radius: 50,
       width: 100,
       height: 100,
-      fill: 'black',
-      stroke: 'black',
+      fill: "black",
+      stroke: "black",
       strokeWidth: 0,
-    }
+    };
     if (!canvasEditor) return;
 
-    if (shape === 'Circle') {
+    if (shape === "Circle") {
       const circleRef = new Circle({
         ...properties,
-      })
+      });
       canvasEditor.add(circleRef);
-    } else if (shape === 'Rectangle') {
+    } else if (shape === "Rectangle") {
       const rectangleRef = new Rect({
         ...properties,
-      })
+      });
       canvasEditor.add(rectangleRef);
-    } else if (shape === 'Line') {
+    } else if (shape === "Line") {
       const lineRef = new Line([50, 50, 200, 200], {
-        stroke: 'black',
+        stroke: "black",
         strokeWidth: 5,
-      })
+      });
       canvasEditor.add(lineRef);
     }
     canvasEditor.renderAll();
-  }
+  };
 
   return (
-    <div className='flex flex-wrap gap-2'>
+    <div className="flex flex-wrap gap-2">
       {shapeList.map((shape) => (
-        <div key={shape.name} onClick={() => onShapeSelect(shape.name)} className='p-2 border border-gray-300 rounded-md cursor-pointer'>
+        <div
+          key={shape.name}
+          onClick={() => onShapeSelect(shape.name)}
+          className="p-2 border border-gray-300 rounded-md cursor-pointer"
+        >
           {shape.icon}
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default Shapes
+export default Shapes;

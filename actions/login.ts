@@ -1,97 +1,94 @@
-"use server"
+"use server";
+import bcrypt from "bcryptjs";
+import { rateLimit } from "@/lib/security";
+import { headers } from "next/headers";
 
-import { signIn } from "@/auth"
-import { db } from "@/lib/db"
-import { sendTwoFactorEmail, sendVerificationEmail } from "@/lib/mail"
-import { generateTwoFactorToken, generateVerificationToken } from "@/lib/tokens"
-import { DEFAULT_LOGIN_REDIRECT } from "@/routes"
-import { LoginSchema } from "@/schemas"
-import { getTwoFactorConfirmationByUserId } from "@/utils/two-factor-confirmation"
-import { getTwoFactorTokenByEmail } from "@/utils/two-factor-token"
-import { getUserByEmail } from "@/utils/user"
-import { AuthError } from "next-auth"
-import * as z from "zod"
+import { signIn } from "@/auth";
+import { db } from "@/lib/db";
+import { sendTwoFactorEmail, sendVerificationEmail } from "@/lib/mail";
+import {
+  generateTwoFactorToken,
+  generateVerificationToken,
+} from "@/lib/tokens";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
+import { LoginSchema } from "@/schemas";
+import { getTwoFactorConfirmationByUserId } from "@/utils/two-factor-confirmation";
+import { getTwoFactorTokenByEmail } from "@/utils/two-factor-token";
+import { getUserByEmail } from "@/utils/user";
+import { AuthError } from "next-auth";
+import * as z from "zod";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
-  const validatedFields = LoginSchema.safeParse(values)
+  const validatedFields = LoginSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Invalid fields" }
+    return { error: "Invalid fields" };
   }
 
-  const { email, password, code } = validatedFields.data
+  const { email, password, code } = validatedFields.data;
+  try {
+    const ip =
+      (await headers()).get("x-forwarded-for")?.split(",")[0] || "unknown";
+    await rateLimit(`login:ip:${ip}`, 30);
+    await rateLimit(`login:${email}`, 8);
+  } catch {
+    return {
+      error: "Too many sign in attempts. Please try again in a minute.",
+    };
+  }
 
-  const existingUser = await getUserByEmail(email)
+  const existingUser = await getUserByEmail(email);
 
   if (!existingUser || !existingUser.password) {
-    return { error: "Invalid credentials" }
+    return { error: "Invalid credentials" };
   }
 
-  // TODO: remove this after testing
-  // if (!existingUser.emailVerified) {
-  //   const verificationToken = await generateVerificationToken(email)
-  //   await sendVerificationEmail(email, verificationToken.token)
-
-  //   return { success: "Confirmation email sent" }
-  // }
-  // TODO: remove this after testing
-  if (existingUser.isTwoFactorEnabled && existingUser.email) {
-    if (code) {
-      const twoFactorToken = await getTwoFactorTokenByEmail(existingUser.email)
-
-      if (!twoFactorToken || twoFactorToken.token !== code) {
-        return { error: "Invalid two factor code" }
-      }
-
-      const hasExpired = new Date() > twoFactorToken.expires
-      if (hasExpired) {
-        return { error: "Two factor code has expired" }
-      }
-
-      await db.twoFactorToken.delete({
-        where: { id: twoFactorToken.id }
-      })
-
-      const existingConfirmation = await getTwoFactorConfirmationByUserId(existingUser.id)
-      if (existingConfirmation) {
-        await db.twoFactorConfirmation.delete({
-          where: { id: existingConfirmation.id }
-        })
-      }
-
-      await db.twoFactorConfirmation.create({
-        data: {
-          userId: existingUser.id
-        }
-      })
-    } else {
-
-      const twoFactorToken = await generateTwoFactorToken(existingUser.email)
-      await sendTwoFactorEmail(existingUser.email, twoFactorToken.token)
-      
-      return { twoFactor: true}
+  if (!(await bcrypt.compare(password, existingUser.password)))
+    return { error: "Invalid credentials" };
+  if (!existingUser.emailVerified) {
+    try {
+      const verificationToken = await generateVerificationToken(email);
+      await sendVerificationEmail(email, verificationToken.token);
+    } catch {
+      return {
+        error: "We could not send your verification link. Please try again.",
+      };
     }
-  } 
-
+    return {
+      success: "Check your inbox to verify your email before signing in",
+    };
+  }
+  if (existingUser.isTwoFactorEnabled && !code) {
+    try {
+      const twoFactorToken = await generateTwoFactorToken(email);
+      await sendTwoFactorEmail(email, twoFactorToken.token);
+      return { twoFactor: true };
+    } catch {
+      return {
+        error: "We could not send your sign in code. Please try again.",
+      };
+    }
+  }
   try {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: DEFAULT_LOGIN_REDIRECT
-    })
+      code,
+      redirectTo: DEFAULT_LOGIN_REDIRECT,
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       //? for next-auth-beta.19: https://github.com/nextauthjs/next-auth/issues/9900#issuecomment-2228807677
       switch (error.type) {
         case "CredentialsSignin":
-          return { error: "Invalid credentials" }
+          return { error: "Invalid credentials" };
         default:
-          return { error: "An error occurred" }
+          return { error: "An error occurred" };
       }
     }
 
     throw error;
   }
 
-  return { success: "Login Successful" }
-}
+  return { success: "Login Successful" };
+};

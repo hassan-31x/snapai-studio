@@ -1,125 +1,68 @@
-# NextAuth Starter Kit 🚀
+# Stillframe
 
-Welcome to the NextAuth Starter Kit! This is an open-source authentication template for modern Next.js applications, designed to provide a robust foundation for building secure and scalable SaaS products. The project incorporates server-side rendering, TypeScript, reusable UI components, and best practices to kickstart your next side project.
+A product photography and ad creative studio built with Next.js 16, React 19, Auth.js, Prisma/MongoDB, OpenRouter, Cloudinary, and Resend.
 
-## Features
+Users verify their email, open a studio, upload a product photo, generate shots or five-format campaigns, create variations, reopen saved projects, edit a canvas, and export images. Each new account gets 10 image credits. There is no paid subscription or credit purchase flow yet.
 
-- **Login with Credentials**
-- **OAuth Providers Integration**
-  - Google
-  - GitHub
-- **Email Verification**
-  - Powered by Resend
-- **Two-Factor Authentication (2FA)**
-- **Forgot Password**
-- **Edit User Information**
-- **Server & Client-side Authorization**
+## Run locally
 
-## Technologies Used
+Use Node 24 LTS (`nvm use`, or install it with `nvm install`).
 
-- **Next.js** with Server-Side Rendering
-- **NextAuth v5 (AuthJS)** for Authentication
-- **TypeScript** for Type Safety
-- **ShadcnUI** and **TailwindCSS** for UI Components
-- **MongoDB** with **Prisma** ORM for Database Management
+```sh
+npm ci
+cp .env.example .env
+# Fill the required settings in .env.
+npm run db:push
+npm run dev
+```
 
-## MongoDB Implementation Notes
+MongoDB must be a replica set, such as Atlas. `db:push` creates the schema's indexes; it is a separate provisioning step, never part of the production build. Existing documents do not need a destructive reset. Prisma 6.19.3 is intentionally retained for MongoDB support. TypeScript 6 is retained for the current ESLint integration.
 
-This project uses MongoDB as the database backend. Since MongoDB with Prisma has some limitations compared to relational databases like PostgreSQL, we've implemented custom solutions:
+The landing and auth screens render without database or API credentials. Live authentication and generation require the services below. Existing OpenAI keys are not used.
 
-- **Manual Cascade Deletions**: MongoDB doesn't support `onDelete: Cascade` in Prisma, so we've implemented manual cascading in application code.
-- **ObjectId Validation**: Added validation for MongoDB ObjectIds before database operations.
-- **Connection String Format**: Uses the MongoDB connection string format.
+## Service configuration
 
-## Getting Started
+| Setting                                                                | Purpose                                                        |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `DATABASE_URL`                                                         | MongoDB replica set connection                                 |
+| `AUTH_SECRET`                                                          | Auth.js session encryption; generate a random 32-byte secret   |
+| `BASE_URL`, `NEXT_PUBLIC_APP_URL`                                      | Final application origin, including HTTPS in production        |
+| `RESEND_API_KEY`, `FROM_EMAIL`                                         | Transactional email with a verified sender domain              |
+| `OPENROUTER_API_KEY`                                                   | Shared server-side generation key                              |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Image storage                                                  |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`                             | Optional Google login; callback is `/api/auth/callback/google` |
+| `NEXT_PUBLIC_SUPPORT_EMAIL`                                            | Contact address displayed in Settings                          |
+| `CRON_SECRET`                                                          | Optional protected maintenance endpoint                        |
 
-### Prerequisites
+Default prompt/vision model: `google/gemini-2.5-flash-lite`. Default image model: `google/gemini-3.1-flash-lite-image`. Override these with `OPENROUTER_TEXT_MODEL` and `OPENROUTER_IMAGE_MODEL`. The image model must support references and the [OpenRouter image API](https://openrouter.ai/docs/guides/overview/multimodal/image-generation). Image pricing differs from text token pricing; consult the model's live endpoint prices and set a spending cap on the shared OpenRouter key before public launch.
 
-Ensure you have the following installed:
+API failures return errors and refund credits. Stock photography is used only as clearly labeled landing-page art direction, never as a substitute for generated results.
 
-- Node.js v16 or above
-- MongoDB database (local or Atlas)
+## Verify
 
-### Installation
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm audit --omit=dev
+```
 
-1. **Clone the Repository**
+Unit tests cover upload signatures, validation, account field restrictions, credit concurrency and idempotent refunds, ownership, provider failure, and OpenRouter's image protocol. `npm run check` runs the first four commands together.
 
-   ```bash
-   git clone https://github.com/hassan-31x/nextjs-starter-kit.git
-   cd nextjs-starter-kit
-   ```
+For an isolated UI preview:
 
-2. **Checkout to the specific branch**
-   
-    ```bash
-   git checkout auth/nextauth-prisma
-   ```
+```sh
+# Stop another dev server on port 3000 first.
+npm run preview:isolated
+```
 
-3. **Install dependencies**
+This starts a disposable local MongoDB replica set and seeds a verified account: `preview@example.test` / `PreviewPass123!`. It does not connect to the database in `.env`; external email and generation are disabled. The saved image is a Cloudinary public demo fixture. Stopping the process discards the database. This preview is a development tool, never a production mode.
 
-   ```bash
-   npm install
-    # or
-    yarn install
-   ```
+## Deploy
 
-4. Setup environment variables
-Create a .env.local file in the root of your project and add the following:
+See [deployment instructions](docs/DEPLOYMENT.md) and [verification notes](docs/VERIFICATION.md). Build with `npm run build`, start with `npm start`, and provision MongoDB once with `npm run db:push` against the intended environment. Use a Node host that permits requests of at least 300 seconds for generation, or Vercel with that duration supported and configured. Images are generated in parallel with 90-second provider deadlines; campaign planning adds a bounded text request.
 
-   ```bash
-   BASE_URL="http://localhost:3000"
+The service uses essential authentication cookies only. Optional session recording and analytics have been removed. The included privacy and terms pages reflect the implementation; fill the operator contact address and review the policies for your business before launch.
 
-    DATABASE_URL="mongodb+srv://username:password@cluster0.mongodb.net/database?retryWrites=true&w=majority"
-    AUTH_SECRET="your_secret_key" #? Generate a secret key using the command: openssl rand -hex 32
-    
-    GITHUB_CLIENT_ID="your_github_client_id"
-    GITHUB_CLIENT_SECRET="your_github_client_secret"
-    
-    GOOGLE_CLIENT_ID="your_google_client_id"
-    GOOGLE_CLIENT_SECRET="your_google_client_secret"
-    
-    RESEND_API_KEY="your_resend_api_key"
-    FROM_EMAIL="onboarding@resend.dev"
-   ```
-
-5. Push the Prisma schema to your MongoDB database
-
-   ```bash
-   npx prisma db push
-   ```
-
-6. Start the development server
-
-    ```bash
-   npm run dev
-    # or
-    yarn dev
-   ```
-
-Your app should now be running on [http://localhost:3000](http://localhost:3000).
-
-## Usage
-
-- **Login with OAuth Providers:** Add your Google and GitHub OAuth credentials in the `.env.local` file to enable login.
-- **Email Verification:** Configure the Resend API key and `FROM_EMAIL` for email verification.
-- **Two-Factor Authentication:** The implementation is ready for use once you complete the basic setup.
-- **Edit User Information:** Accessible after logging in.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request if you have suggestions, bug reports, or improvements.
-
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
-
-## Acknowledgements
-
-- [NextAuth.js](https://next-auth.js.org/)
-- [Prisma](https://www.prisma.io/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [ShadcnUI](https://shadcn.dev/)
-- [Resend](https://resend.com/)
-
-
+Production dependencies pass `npm audit --omit=dev`. The full audit currently includes upstream advisories in the Next.js ESLint plugin's development-only glob parser chain. They do not appear in the production dependency audit. Do not blindly downgrade the Next.js lint integration to resolve those advisories.

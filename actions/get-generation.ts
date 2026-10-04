@@ -1,27 +1,20 @@
 "use server";
-
 import { getGeneration } from "@/utils/generations";
-
-export async function getGenerationAction(generationId: string, userId: string) {
+import { requireUser, actionError } from "@/lib/security";
+import { objectIdSchema } from "@/lib/validation";
+export async function getGenerationAction(
+  generationId: string,
+  _userId?: string,
+) {
   try {
-    const generation = await getGeneration(generationId, userId);
-    
-    if (!generation) {
-      return {
-        success: false,
-        error: "Generation not found"
-      };
-    }
-
-    return {
-      success: true,
-      generation
-    };
+    const user = await requireUser();
+    const generation = await getGeneration(
+      objectIdSchema.parse(generationId),
+      user.id,
+    );
+    if (!generation) return { success: false, error: "Project not found" };
+    return { success: true, generation };
   } catch (error) {
-    console.error("Error fetching generation:", error);
-    return {
-      success: false,
-      error: "Failed to fetch generation"
-    };
+    return { success: false, error: actionError(error) };
   }
 }

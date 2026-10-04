@@ -1,45 +1,61 @@
-//? This file is used because middleware runs on edge but prisma does not support edge so to achieve extra callbacks provided, we use this file
-
-import type { NextAuthConfig } from "next-auth"
-import Credentials from "next-auth/providers/credentials"
-import Github from "next-auth/providers/github"
-import Google from "next-auth/providers/google"
-import bcrypt from "bcryptjs"
-
-import { getUserByEmail } from "@/utils/user"
-import { LoginSchema } from "@/schemas"
-
+import { db, transaction } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
+import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import bcrypt from "bcryptjs";
+import { getUserByEmail } from "@/utils/user";
+import { LoginSchema } from "@/schemas";
 export default {
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    // TODO: add login with behance / ad accounts
-    // Github({
-    //   clientId: process.env.GITHUB_CLIENT_ID,
-    //   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    // }),
-    //magin links: https://authjs.dev/guides/configuring-resend#registering-your-app
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
     Credentials({
-      async authorize(credentials: any) {
-        const validatedFields = LoginSchema.safeParse(credentials)
-
-        if (!validatedFields.success) {
-          return null
+      async authorize(credentials, request) {
+        const parsed = LoginSchema.safeParse(credentials);
+        if (!parsed.success) return null;
+        const ip =
+          request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+        try {
+          await rateLimit(`credentials:ip:${ip}`, 30);
+          await rateLimit(`credentials:${parsed.data.email}`, 8);
+        } catch {
+          return null;
         }
-
-        const { email, password } = validatedFields.data
-
-         const user = await getUserByEmail(email)
-         if (!user || !user.password) return null
-
-         const isValid = await bcrypt.compare(password, user.password)
-
-         if (!isValid) return null
-
-          return user
-      }
-    })
+        const user = await getUserByEmail(parsed.data.email);
+        if (
+          !user?.password ||
+          !user.emailVerified ||
+          !(await bcrypt.compare(parsed.data.password, user.password))
+        )
+          return null;
+        if (user.isTwoFactorEnabled) {
+          const code = parsed.data.code;
+          if (!code) return null;
+          const token = await db.twoFactorToken.findFirst({
+            where: {
+              email: user.email!,
+              token: code,
+              expires: { gt: new Date() },
+            },
+          });
+          if (!token) return null;
+          try {
+            await transaction(async (tx) => {
+              await tx.twoFactorToken.delete({ where: { id: token.id } });
+            });
+          } catch {
+            return null;
+          }
+        }
+        return user;
+      },
+    }),
   ],
-} satisfies NextAuthConfig
+} satisfies NextAuthConfig;

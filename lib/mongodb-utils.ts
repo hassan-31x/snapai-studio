@@ -1,37 +1,21 @@
 import { db } from "./db";
-
-/**
- * Handles cascade deletion of user-related data in MongoDB
- * Since MongoDB with Prisma doesn't support onDelete: Cascade
- */
 export const cascadeDeleteUser = async (userId: string) => {
-  try {
-    // Delete TwoFactorConfirmation
-    await db.twoFactorConfirmation.deleteMany({
-      where: { userId }
-    });
-
-    // Delete Accounts
-    await db.account.deleteMany({
-      where: { userId }
-    });
-
-    // Delete the User
-    await db.user.delete({
-      where: { id: userId }
-    });
-
-    return true;
-  } catch (error) {
-    console.error("Error during cascade delete user:", error);
-    return false;
-  }
+  await db.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({ where: { id: userId } });
+    await tx.creditReservation.deleteMany({ where: { userId } });
+    await tx.design.deleteMany({ where: { userId } });
+    await tx.productImage.deleteMany({ where: { userId } });
+    await tx.submission.deleteMany({ where: { userId } });
+    await tx.generation.deleteMany({ where: { userId } });
+    await tx.twoFactorConfirmation.deleteMany({ where: { userId } });
+    await tx.account.deleteMany({ where: { userId } });
+    if (user?.email) {
+      await tx.verificationToken.deleteMany({ where: { email: user.email } });
+      await tx.resetPasswordToken.deleteMany({ where: { email: user.email } });
+      await tx.twoFactorToken.deleteMany({ where: { email: user.email } });
+    }
+    await tx.user.delete({ where: { id: userId } });
+  });
+  return true;
 };
-
-/**
- * Check if a string is a valid MongoDB ObjectId
- */
-export const isValidObjectId = (id: string): boolean => {
-  const objectIdPattern = /^[0-9a-fA-F]{24}$/;
-  return objectIdPattern.test(id);
-}; 
+export const isValidObjectId = (id: string) => /^[0-9a-fA-F]{24}$/.test(id);

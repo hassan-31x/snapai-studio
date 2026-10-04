@@ -1,32 +1,33 @@
-"use server"
-
-import { auth } from "@/auth"
-import { db } from "@/lib/db"
-import { cascadeDeleteUser } from "@/lib/mongodb-utils"
-
-/**
- * Action to delete a user and all related records
- * Uses manual cascade delete for MongoDB
- */
-export const deleteUser = async () => {
+"use server";
+import { requireUser, actionError } from "@/lib/security";
+import { db } from "@/lib/db";
+import { cascadeDeleteUser } from "@/lib/mongodb-utils";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
+export async function deleteUser() {
   try {
-    const session = await auth()
-    const userId = session?.user?.id
-    
-    if (!userId) {
-      return { error: "Unauthorized" }
-    }
-    
-    // Use the cascade delete utility that handles MongoDB's lack of onDelete: Cascade
-    const success = await cascadeDeleteUser(userId)
-    
-    if (!success) {
-      return { error: "Failed to delete user" }
-    }
-    
-    return { success: "User deleted successfully" }
+    const user = await requireUser();
+    const [shots, submissions, generations] = await Promise.all([
+      db.productImage.findMany({ where: { userId: user.id } }),
+      db.submission.findMany({ where: { userId: user.id } }),
+      db.generation.findMany({ where: { userId: user.id } }),
+    ]);
+    const ids = new Set<string>();
+    for (const row of [...shots, ...submissions, ...generations])
+      for (const [key, value] of Object.entries(row))
+        if (
+          key.toLowerCase().endsWith("publicid") &&
+          typeof value === "string" &&
+          value
+        )
+          ids.add(value);
+    await cascadeDeleteUser(user.id);
+    const cleanup = await Promise.allSettled(
+      [...ids].map(deleteFromCloudinary),
+    );
+    if (cleanup.some((result) => result.status === "rejected"))
+      console.error("Account removed; some stored images need manual cleanup");
+    return { success: "Account deleted" };
   } catch (error) {
-    console.error("Error deleting user:", error)
-    return { error: "Something went wrong" }
+    return { error: actionError(error) };
   }
-} 
+}

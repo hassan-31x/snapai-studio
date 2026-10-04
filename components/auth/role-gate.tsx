@@ -14,7 +14,9 @@ const RoleGate = ({ children, allowedRoles }: Props) => {
   const userRole = session?.user?.role;
 
   if (!allowedRoles.includes(userRole!)) {
-    return <FormError message="You do not have permission to access this content" />;
+    return (
+      <FormError message="You do not have permission to access this content" />
+    );
   }
 
   return <>{children}</>;

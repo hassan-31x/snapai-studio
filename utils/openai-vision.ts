@@ -1,22 +1,20 @@
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { getOpenRouter, textModel } from "@/lib/openrouter";
 
 /**
- * Analyze image using OpenAI Vision API
+ * Analyze image using OpenRouter Vision API
  */
-export async function analyzeImageWithVision(base64Image: string): Promise<string> {
+export async function analyzeImageWithVision(
+  base64Image: string,
+): Promise<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await getOpenRouter().chat.completions.create({
+      model: textModel(),
       messages: [
         {
           role: "user",
           content: [
-            { 
-              type: "text", 
+            {
+              type: "text",
               text: `Analyze this ad creative in detail. Describe:
               - overall layout of the ad (what is present in top, left, right, center of the ad)
               - typography: The typography of the ad creative (what kind of font, size, color, where its placed, etc.)
@@ -26,7 +24,7 @@ export async function analyzeImageWithVision(base64Image: string): Promise<strin
               - The visual characteristics of the ad creative
               - Overall theme (is it luxury, modern, cool, etc.)
               - Background - what kind of environment is it in etc (is it outdoor or on a beach etc).
-              `
+              `,
             },
             {
               type: "image_url",
@@ -40,8 +38,6 @@ export async function analyzeImageWithVision(base64Image: string): Promise<strin
       max_tokens: 500,
     });
 
-    console.log("response", response.choices[0].message.content);
-
     return response.choices[0].message.content || "Unable to analyze image";
   } catch (error) {
     console.error("Error analyzing image with Vision API:", error);
@@ -50,13 +46,13 @@ export async function analyzeImageWithVision(base64Image: string): Promise<strin
 }
 
 /**
- * Generate advanced product information using OpenAI
+ * Generate advanced product information using OpenRouter
  */
 export async function generateAdvancedProductInfo(
   productName: string,
   productCategory: string,
   userDescription?: string,
-  imageAnalysis?: string
+  imageAnalysis?: string,
 ): Promise<{
   brandName: string;
   brandTone: string;
@@ -86,8 +82,8 @@ Make everything sound premium, sophisticated, and luxury-oriented.`;
 
     const userPrompt = `Product Name: ${productName}
 Product Category: ${productCategory}
-${userDescription ? `User Description: ${userDescription}` : ''}
-${imageAnalysis ? `Image Analysis: ${imageAnalysis}` : ''}
+${userDescription ? `User Description: ${userDescription}` : ""}
+${imageAnalysis ? `Image Analysis: ${imageAnalysis}` : ""}
 
 Please generate comprehensive brand and visual styling guidelines for this product. Here's an example of the expected format:
 
@@ -102,37 +98,28 @@ Please generate comprehensive brand and visual styling guidelines for this produ
   "compositionGuidelines": "Maintain clean symmetry or elegant off-center balance. Always leave intentional space around the product. Keep supporting elements minimal and refined."
 }`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await getOpenRouter().chat.completions.create({
+      model: textModel(),
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.7,
       max_tokens: 800,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;
-    
+
     if (!content) {
-      throw new Error("No content returned from OpenAI");
+      throw new Error("No content returned from OpenRouter");
     }
 
     const parsedResponse = JSON.parse(content);
     return parsedResponse;
-  } catch (error) {
-    console.error("Error generating advanced product info:", error);
-    // Return fallback data
-    return {
-      brandName: "PREMIUM",
-      brandTone: "Luxury and sophisticated — clean, calm, and elegant.",
-      colorTheme: "Neutral tones with elegant accents.",
-      backgroundStyle: "Soft gradients or realistic textures.",
-      lightingStyle: "Soft, diffused lighting with gentle reflections.",
-      productPlacement: "Product centered with minimal, elegant props.",
-      typographyStyle: "Clean, modern typography with elegant fonts.",
-      compositionGuidelines: "Balanced composition with intentional negative space."
-    };
+  } catch {
+    throw new Error(
+      "Could not suggest a creative direction. Please try again.",
+    );
   }
 }

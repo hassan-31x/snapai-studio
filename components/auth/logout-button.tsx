@@ -5,7 +5,6 @@ type Props = {
 };
 
 const LogoutButton = ({ children }: Props) => {
-
   const handleLogout = () => {
     logout();
   };

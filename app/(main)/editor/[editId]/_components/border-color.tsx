@@ -1,29 +1,26 @@
-import React, { useState } from 'react'
-import ColorPicker from './color-picker'
-import { useCanvasHook } from '../page'
+import React, { useState } from "react";
+import ColorPicker from "./color-picker";
+import { useCanvasHook } from "@/context/canvas-provider";
 
 const BorderColor = () => {
-  const [color, setColor] = useState('#000000')
-  const { canvasEditor } = useCanvasHook()
+  const [color, setColor] = useState("#000000");
+  const { canvasEditor } = useCanvasHook();
 
   const onColorChange = (color: string) => {
-    setColor(color)
+    setColor(color);
     if (canvasEditor) {
-      canvasEditor.getActiveObject().set({
-        stroke: color
-      })
-      canvasEditor.renderAll()
+      canvasEditor.getActiveObject()?.set({
+        stroke: color,
+      });
+      canvasEditor.renderAll();
     }
-  }
+  };
 
   return (
     <div>
-      <ColorPicker 
-        value={color}
-        onChange={onColorChange}
-      />
+      <ColorPicker value={color} onChange={onColorChange} />
     </div>
-  )
-}
+  );
+};
 
-export default BorderColor
+export default BorderColor;

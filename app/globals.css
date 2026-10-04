@@ -1,280 +1,110 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root,
-html,
-body {
-  height: 100%;
-}
-
-.chrome-picker {
-  width: auto !important;
-  box-shadow: none !important;
-  border-radius: 0.5rem !important;
-  overflow: hidden !important;
-}
-
-
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 215 28% 17%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 215 28% 17%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 262 83% 58%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262 83% 58%;
+    --background: 220 20% 99%;
+    --foreground: 222 18% 12%;
+    --card: 220 20% 99%;
+    --card-foreground: 222 18% 12%;
+    --popover: 220 20% 99%;
+    --popover-foreground: 222 18% 12%;
+    --primary: 222 18% 14%;
+    --primary-foreground: 220 20% 99%;
+    --secondary: 220 14% 95%;
+    --secondary-foreground: 222 18% 20%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 8% 43%;
+    --accent: 220 14% 94%;
+    --accent-foreground: 222 18% 12%;
+    --destructive: 0 70% 46%;
+    --destructive-foreground: 220 20% 99%;
+    --border: 220 12% 89%;
+    --input: 220 12% 86%;
+    --ring: 221 75% 53%;
     --radius: 0.75rem;
-    --chart-1: 262 83% 58%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --sidebar-background: 215 28% 97%;
-    --sidebar-foreground: 215 28% 17%;
-    --sidebar-primary: 262 83% 58%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 215 28% 17%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 262 83% 58%;
+    --chart-1: 221 75% 53%;
+    --chart-2: 160 45% 42%;
+    --chart-3: 32 50% 50%;
+    --chart-4: 275 45% 55%;
+    --chart-5: 0 55% 55%;
+    --sidebar-background: 220 14% 97%;
+    --sidebar-foreground: 222 18% 20%;
+    --sidebar-primary: 222 18% 14%;
+    --sidebar-primary-foreground: 220 20% 99%;
+    --sidebar-accent: 220 14% 92%;
+    --sidebar-accent-foreground: 222 18% 12%;
+    --sidebar-border: 220 12% 89%;
+    --sidebar-ring: 221 75% 53%;
   }
-
-  .dark {
-    --background: 215 28% 17%;
-    --foreground: 210 40% 98%;
-    --card: 215 28% 17%;
-    --card-foreground: 210 40% 98%;
-    --popover: 215 28% 17%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 215 28% 17%;
-    --secondary: 215 25% 27%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 215 25% 27%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 262 83% 58%;
-    --accent-foreground: 215 28% 17%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 262 83% 58%;
-    --chart-1: 262 83% 58%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 215 28% 17%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 262 83% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 27%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 25% 27%;
-    --sidebar-ring: 262 83% 58%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-geist-sans), Geist, sans-serif;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.035em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+  }
+  button,
+  a {
+    transition:
+      color 180ms cubic-bezier(0.32, 0.72, 0, 1),
+      background-color 180ms cubic-bezier(0.32, 0.72, 0, 1),
+      transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  button:active {
+    transform: translateY(1px);
   }
 }
-
-/* Premium gradient backgrounds */
-.gradient-violet {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%);
-}
-
-.gradient-purple-pink {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #ec4899 100%);
-}
-
-.gradient-blue-purple {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #a855f7 100%);
-}
-
-/* Glass morphism effects */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.glass-dark {
-  background: rgba(30, 30, 40, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Floating animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.floating-animation {
-  animation: float 3s ease-in-out infinite;
-}
-
-.floating-animation:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.floating-animation:nth-child(3) {
-  animation-delay: 1s;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Premium button styles */
-.btn-premium {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-  border: none;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.btn-premium:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(139, 92, 246, 0.25);
-}
-
-/* Card hover effects */
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Image overlay effects */
-.image-overlay {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.1) 40%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
-}
-
-/* Premium color palette utilities */
-.text-violet-primary {
-  color: hsl(262, 83%, 58%);
-}
-
-.bg-violet-primary {
-  background-color: hsl(262, 83%, 58%);
-}
-
-.border-violet-primary {
-  border-color: hsl(262, 83%, 58%);
-}
-
-/* Loading states */
-@keyframes pulse-premium {
-  0%, 100% {
-    opacity: 1;
-    background-color: #f1f5f9;
+@layer components {
+  .section-wrap {
+    @apply mx-auto w-full max-w-6xl px-6 md:px-8;
   }
-  50% {
-    opacity: 0.7;
-    background-color: #e2e8f0;
+  .studio-page {
+    @apply mx-auto w-full max-w-6xl p-6 md:p-8;
+  }
+  .field {
+    @apply flex flex-col gap-2 text-sm font-medium;
+  }
+  .field input,
+  .field textarea,
+  .field select {
+    @apply w-full rounded-lg border bg-background px-3 py-2 text-base font-normal;
   }
 }
-
-.loading-premium {
-  animation: pulse-premium 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.chrome-picker {
+  width: auto !important;
+  box-shadow: none !important;
 }
-
-/* Compact layout styles */
-.compact-sidebar {
-  width: 240px;
-}
-
-.compact-header {
-  height: 56px;
-}
-
-/* Badge styles */
-.badge-new {
-  background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
-  color: white;
-}
-
-.badge-alpha {
-  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
-  color: white;
-}
-
-/* Focus states for accessibility */
-.focus-ring:focus {
-  outline: 2px solid hsl(262, 83%, 58%);
-  outline-offset: 2px;
-}
-
-/* Typography enhancements */
-.text-heading {
-  font-weight: 600;
-  letter-spacing: -0.025em;
-}
-
-.text-body {
-  line-height: 1.6;
-}
-
-/* Responsive design helpers */
-@media (max-width: 768px) {
-  .compact-sidebar {
-    width: 100%;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
-  
-  .mobile-padding {
-    padding: 1rem;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
-}
-
-/* Performance optimization */
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: transform;
 }

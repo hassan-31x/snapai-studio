@@ -1,10 +1,7 @@
 "use server";
 
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { requireUser, rateLimit } from "@/lib/security";
+import { getOpenRouter, textModel } from "@/lib/openrouter";
 
 export interface PromptAssistantParams {
   productName: string;
@@ -30,15 +27,21 @@ export interface PromptEnhancementResponse {
 /**
  * Generate a detailed product shot prompt based on user inputs
  */
-export async function generatePromptAssistance(params: PromptAssistantParams): Promise<PromptAssistantResponse> {
+export async function generatePromptAssistance(
+  params: PromptAssistantParams,
+): Promise<PromptAssistantResponse> {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    const user = await requireUser();
+    await rateLimit(`assistant:${user.id}`, 10);
+    if (!process.env.OPENROUTER_API_KEY) {
       return {
         success: false,
-        error: "OpenAI API key not configured"
+        error: "OpenRouter API key not configured",
       };
     }
 
+    if (JSON.stringify(params).length > 8000)
+      throw new Error("Keep your prompt shorter than 8000 characters");
     const systemPrompt = `You are a professional product photography prompt specialist. Your task is to create detailed, specific prompts for AI image generation that will result in stunning product shots.
 
 Based on the user's inputs, generate a comprehensive prompt that includes:
@@ -61,32 +64,31 @@ Key Features to Highlight: ${params.keyFeatures}
 
 Generate a comprehensive prompt that would create a professional product photograph showcasing these elements. Focus on visual details, lighting, composition, and professional photography quality. Use the specific product name/description to make the prompt more targeted and relevant.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await getOpenRouter().chat.completions.create({
+      model: textModel(),
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.7,
       max_tokens: 400,
     });
 
     const content = response.choices[0].message.content;
-    
+
     if (!content) {
-      throw new Error("No content returned from OpenAI");
+      throw new Error("No content returned from OpenRouter");
     }
 
     return {
       success: true,
-      prompt: content.trim()
+      prompt: content.trim(),
     };
-
   } catch (error) {
     console.error("Error generating prompt assistance:", error);
     return {
       success: false,
-      error: "Failed to generate prompt assistance"
+      error: "Failed to generate prompt assistance",
     };
   }
 }
@@ -94,19 +96,25 @@ Generate a comprehensive prompt that would create a professional product photogr
 /**
  * Enhance an existing prompt with more detail and professional terminology
  */
-export async function enhancePrompt(originalPrompt: string): Promise<PromptEnhancementResponse> {
+export async function enhancePrompt(
+  originalPrompt: string,
+): Promise<PromptEnhancementResponse> {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    const user = await requireUser();
+    await rateLimit(`assistant:${user.id}`, 10);
+    if (!process.env.OPENROUTER_API_KEY) {
       return {
         success: false,
-        error: "OpenAI API key not configured"
+        error: "OpenRouter API key not configured",
       };
     }
 
+    if (originalPrompt.length > 2000)
+      throw new Error("Keep your prompt shorter than 2000 characters");
     if (!originalPrompt || originalPrompt.trim().length < 10) {
       return {
         success: false,
-        error: "Prompt must be at least 10 characters long"
+        error: "Prompt must be at least 10 characters long",
       };
     }
 
@@ -127,32 +135,31 @@ Original prompt: "${originalPrompt}"
 
 Make it more detailed and professional while keeping the core intent. Add specific lighting, composition, and technical details that would result in a higher quality product photograph.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const response = await getOpenRouter().chat.completions.create({
+      model: textModel(),
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.6,
       max_tokens: 500,
     });
 
     const content = response.choices[0].message.content;
-    
+
     if (!content) {
-      throw new Error("No content returned from OpenAI");
+      throw new Error("No content returned from OpenRouter");
     }
 
     return {
       success: true,
-      enhancedPrompt: content.trim()
+      enhancedPrompt: content.trim(),
     };
-
   } catch (error) {
     console.error("Error enhancing prompt:", error);
     return {
       success: false,
-      error: "Failed to enhance prompt"
+      error: "Failed to enhance prompt",
     };
   }
 }
